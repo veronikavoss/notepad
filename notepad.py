@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,QMenuBar,QMenu,QStatusBar)
 
 from PySide6.QtGui import QAction
+from file_action import FileAction
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -31,6 +32,9 @@ class MainWindow(QMainWindow):
         # self.grid_layout.addLayout(self.vlayout,0,0,1,1)
         
         self.setCentralWidget(self.central_widget)
+
+        self.statusbar = QStatusBar(self)
+        self.setStatusBar(self.statusbar)
     
     def set_menubar(self):
         self.menubar = QMenuBar(self)
@@ -39,7 +43,6 @@ class MainWindow(QMainWindow):
         self.file_menu = QMenu(self.menubar)
         self.file_menu.setTitle('&파일')
         self.menubar.addMenu(self.file_menu)
-        
         self.set_file_action()
         
         self.edit_menu = QMenu(self.menubar)
@@ -47,6 +50,8 @@ class MainWindow(QMainWindow):
         self.menubar.addMenu(self.edit_menu)
     
     def set_file_action(self):
+        self.file_action = FileAction(self)
+        
         self.new_action = QAction('&새로 만들기')
         self.new_action.setShortcut('Ctrl+N')
         
@@ -55,6 +60,7 @@ class MainWindow(QMainWindow):
         
         self.open_action = QAction('&열기')
         self.open_action.setShortcut('Ctrl+O')
+        self.open_action.triggered.connect(self.file_action.open)
         
         self.save_action = QAction('&저장')
         self.save_action.setShortcut('Ctrl+S')
@@ -88,9 +94,6 @@ class MainWindow(QMainWindow):
             self.file_separator2,
             self.exit_action
             ])
-    
-        self.statusbar = QStatusBar(self)
-        self.setStatusBar(self.statusbar)
 
 app = QApplication(sys.argv)
 window = MainWindow()
