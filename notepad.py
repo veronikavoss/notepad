@@ -10,18 +10,16 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.set_ui()
+        self.set_menu()
         self.show()
     
     def set_ui(self):
-        self.setWindowTitle('notepad')
+        self.file_name = '제목 없음'
+        self.setWindowTitle(self.file_name + ' - Windows 메모장')
         self.resize(1280,720)
         
-        self.set_menubar()
-        
         self.central_widget = QWidget(self)
-        
-        # self.grid_layout = QGridLayout(self.central_widget)
-        # self.grid_layout.setContentsMargins(0,0,0,0)
+        self.setCentralWidget(self.central_widget)
         
         self.vlayout = QVBoxLayout(self.central_widget)
         self.vlayout.setContentsMargins(0,0,0,0)
@@ -29,14 +27,15 @@ class MainWindow(QMainWindow):
         self.plain_text_edit = QPlainTextEdit(self.central_widget)
         self.vlayout.addWidget(self.plain_text_edit)
         
-        # self.grid_layout.addLayout(self.vlayout,0,0,1,1)
-        
-        self.setCentralWidget(self.central_widget)
-
         self.statusbar = QStatusBar(self)
         self.setStatusBar(self.statusbar)
+        
+        # self.grid_layout = QGridLayout(self.central_widget)
+        # self.grid_layout.setContentsMargins(0,0,0,0)
+        
+        # self.grid_layout.addLayout(self.vlayout,0,0,1,1)
     
-    def set_menubar(self):
+    def set_menu(self):
         self.menubar = QMenuBar(self)
         self.setMenuBar(self.menubar)
         
@@ -50,7 +49,7 @@ class MainWindow(QMainWindow):
         self.menubar.addMenu(self.edit_menu)
     
     def set_file_action(self):
-        self.file_action = FileAction(self)
+        self.file_action = FileAction(self,self.plain_text_edit,self.file_name)
         
         self.new_action = QAction('&새로 만들기')
         self.new_action.setShortcut('Ctrl+N')
