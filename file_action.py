@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QFileDialog
+import os
 
 class FileAction:
     def __init__(self,main,plain,name):
@@ -14,18 +15,17 @@ class FileAction:
     
     def open(self):
         self.file_name = QFileDialog.getOpenFileName(self.main)
-        print('file_name',self.file_name[0])
-        self.main.setWindowTitle(self.file_name[0] + ' - Windows 메모장')
+        print('file_name',os.path.join(os.path.basename(self.file_name[0])))
+        self.main.setWindowTitle(os.path.join(os.path.basename(self.file_name[0])) + ' - Windows 메모장')
         
         with open(self.file_name[0],'r',encoding='UTF8') as r:
             text = r.read()
-            print(text)
         self.plain_text.setPlainText(text)
     
     def save(self):
         self.file_name = QFileDialog.getSaveFileName(self.main)
-        print('file_name',self.file_name[0])
+        self.get_text = self.plain_text.toPlainText()
         with open(self.file_name[0],'w',encoding='UTF8') as w:
-            text = w.w()
-            print(text)
-        self.plain_text.setPlainText(text)
+            w.write(self.get_text)
+            print(self.file_name[0])
+        self.main.setWindowTitle(os.path.join(os.path.basename(self.file_name[0])) + ' - Windows 메모장')

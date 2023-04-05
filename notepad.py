@@ -1,10 +1,13 @@
-import sys
+import sys,os
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QWidget,QGridLayout,QVBoxLayout,
     QPlainTextEdit,QMenuBar,QMenu,QStatusBar)
+from PySide6.QtGui import QAction,QIcon
+from PySide6.QtCore import Signal,QObject
 
-from PySide6.QtGui import QAction
 from file_action import FileAction
+
+image_path = os.path.dirname(os.path.abspath(__file__))
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -15,6 +18,7 @@ class MainWindow(QMainWindow):
     
     def set_ui(self):
         self.file_name = '제목 없음'
+        self.setWindowIcon(QIcon('./image/notepad_icon.png'))
         self.setWindowTitle(self.file_name + ' - Windows 메모장')
         self.resize(1280,720)
         
@@ -40,43 +44,44 @@ class MainWindow(QMainWindow):
         self.setMenuBar(self.menubar)
         
         self.file_menu = QMenu(self.menubar)
-        self.file_menu.setTitle('&파일')
+        self.file_menu.setTitle('파일(&F)')
         self.menubar.addMenu(self.file_menu)
         self.set_file_action()
         
         self.edit_menu = QMenu(self.menubar)
-        self.edit_menu.setTitle('&편집')
+        self.edit_menu.setTitle('편집(&E)')
         self.menubar.addMenu(self.edit_menu)
     
     def set_file_action(self):
         self.file_action = FileAction(self,self.plain_text_edit,self.file_name)
         
-        self.new_action = QAction('&새로 만들기')
+        self.new_action = QAction('새로 만들기(&N)')
         self.new_action.setShortcut('Ctrl+N')
         
-        self.new_window_action = QAction('&새 창')
+        self.new_window_action = QAction('새 창(&W)')
         self.new_window_action.setShortcut('Ctrl+Shift+N')
         
-        self.open_action = QAction('&열기')
+        self.open_action = QAction('열기(&O)...')
         self.open_action.setShortcut('Ctrl+O')
         self.open_action.triggered.connect(self.file_action.open)
         
-        self.save_action = QAction('&저장')
+        self.save_action = QAction('저장(&S)')
         self.save_action.setShortcut('Ctrl+S')
+        self.save_action.triggered.connect(self.file_action.save)
         
-        self.saveas_action = QAction('&다른 이름으로 저장')
+        self.saveas_action = QAction('다른 이름으로 저장(&A)...')
         self.saveas_action.setShortcut('Ctrl+Shift+S')
         
         self.file_separator1 = self.file_menu.addSeparator()
         
-        self.page_action = QAction('&페이지 설정')
+        self.page_action = QAction('페이지 설정(&U)...')
         
-        self.print_action = QAction('&인쇄')
+        self.print_action = QAction('인쇄(&P)...')
         self.print_action.setShortcut('Ctrl+P')
         
         self.file_separator2 = self.file_menu.addSeparator()
         
-        self.exit_action = QAction('&끝내기')
+        self.exit_action = QAction('끝내기(&X)')
         
         self._action = QAction('&')
         self._action.setShortcut('Ctrl+Shift+')
