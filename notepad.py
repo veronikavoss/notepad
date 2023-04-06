@@ -5,11 +5,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QAction,QIcon
 from PySide6.QtCore import Signal,QObject
 
-from file_action import FileAction
+from actions import SetActions
 
 image_path = os.path.dirname(os.path.abspath(__file__))
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow,SetActions):
     def __init__(self):
         super().__init__()
         self.set_ui()
@@ -30,6 +30,8 @@ class MainWindow(QMainWindow):
         
         self.plain_text_edit = QPlainTextEdit(self.central_widget)
         self.vlayout.addWidget(self.plain_text_edit)
+        self.original_text = self.plain_text_edit.toPlainText()
+        self.plain_text_edit.textChanged.connect(self.checking_modify_document)
         
         self.statusbar = QStatusBar(self)
         self.setStatusBar(self.statusbar)
@@ -38,6 +40,14 @@ class MainWindow(QMainWindow):
         # self.grid_layout.setContentsMargins(0,0,0,0)
         
         # self.grid_layout.addLayout(self.vlayout,0,0,1,1)
+    
+    def checking_modify_document(self):
+        if self.original_text != self.plain_text_edit.toPlainText():
+            print('modify')
+            self.setWindowTitle(f'*{self.windowTitle()}')
+        elif self.original_text == self.plain_text_edit.toPlainText():
+            print('no modify')
+            self.setWindowTitle(f'{self.windowTitle()}')
     
     def set_menu(self):
         self.menubar = QMenuBar(self)
@@ -53,7 +63,7 @@ class MainWindow(QMainWindow):
         self.menubar.addMenu(self.edit_menu)
     
     def set_file_action(self):
-        self.file_action = FileAction(self,self.plain_text_edit,self.file_name)
+        # self = FileAction(self,self.plain_text_edit,self.file_name)
         
         self.new_action = QAction('새로 만들기(&N)')
         self.new_action.setShortcut('Ctrl+N')
@@ -63,11 +73,11 @@ class MainWindow(QMainWindow):
         
         self.open_action = QAction('열기(&O)...')
         self.open_action.setShortcut('Ctrl+O')
-        self.open_action.triggered.connect(self.file_action.open)
+        self.open_action.triggered.connect(self.open)
         
         self.save_action = QAction('저장(&S)')
         self.save_action.setShortcut('Ctrl+S')
-        self.save_action.triggered.connect(self.file_action.save)
+        self.save_action.triggered.connect(self.save)
         
         self.saveas_action = QAction('다른 이름으로 저장(&A)...')
         self.saveas_action.setShortcut('Ctrl+Shift+S')
