@@ -1,7 +1,7 @@
 import sys,os
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QWidget,QGridLayout,QVBoxLayout,
-    QPlainTextEdit,QMenuBar,QMenu,QStatusBar)
+    QTextEdit,QMenuBar,QMenu,QStatusBar)
 from PySide6.QtGui import QAction,QIcon
 from PySide6.QtCore import Signal,QObject
 
@@ -37,10 +37,10 @@ class MainWindow(QMainWindow,SetActions):
         self.vlayout = QVBoxLayout(self.central_widget)
         self.vlayout.setContentsMargins(0,0,0,0)
         
-        self.plain_text_edit = QPlainTextEdit(self.central_widget)
-        self.vlayout.addWidget(self.plain_text_edit)
-        self.original_text = self.plain_text_edit.toPlainText()
-        self.plain_text_edit.textChanged.connect(self.checking_modify_document)
+        self.text_edit = QTextEdit(self.central_widget)
+        self.vlayout.addWidget(self.text_edit)
+        self.original_text = self.text_edit.toPlainText()
+        self.text_edit.textChanged.connect(self.checking_modify_document)
         self.statusbar = QStatusBar(self)
         self.setStatusBar(self.statusbar)
         
@@ -55,11 +55,11 @@ class MainWindow(QMainWindow,SetActions):
         # else:
         #     self.file_name = os.path.basename(self.file_name)
         
-        if self.original_text != self.plain_text_edit.toPlainText():
+        if self.original_text != self.text_edit.toPlainText():
             print('modify')
             self.setWindowTitle(f'*{os.path.basename(self.file_name)}' + ' - Windows 메모장')
             self.modify = True
-        elif self.original_text == self.plain_text_edit.toPlainText():
+        elif self.original_text == self.text_edit.toPlainText():
             print('no modify')
             self.setWindowTitle(f'{os.path.basename(self.file_name)}' + ' - Windows 메모장')
             self.modify = False
@@ -78,7 +78,7 @@ class MainWindow(QMainWindow,SetActions):
         self.menubar.addMenu(self.edit_menu)
     
     def set_file_action(self):
-        # self = FileAction(self,self.plain_text_edit,self.file_name)
+        # self = FileAction(self,self.text_edit,self.file_name)
         
         self.new_action = QAction('새로 만들기(&N)')
         self.new_action.setShortcut('Ctrl+N')

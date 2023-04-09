@@ -6,7 +6,7 @@ class SetActions:
         if self.modify:
             self.save_messagebox()
         else:
-            self.plain_text_edit.clear()
+            self.text_edit.clear()
     
     # def new_window(self,main_window):
     #     new_window = main_window
@@ -28,7 +28,10 @@ class SetActions:
                     print(e)
                     # self.setWindowTitle(self.previous_filename)
                 else:
-                    self.plain_text_edit.setPlainText(text)
+                    self.text_edit.setPlainText(text)
+                    self.previous_filename = self.file_name
+                    print(self.previous_filename)
+                    print(self.windowTitle())
             else:
                 self.file_name = self.previous_filename
         else:
@@ -66,13 +69,13 @@ class SetActions:
             if self.modify:
                 try:
                     with open(self.file_name,'w',encoding='UTF8') as w:
-                        w.write(self.plain_text_edit.toPlainText())
+                        w.write(self.text_edit.toPlainText())
                         w.close()
                 except Exception as e:
                     print(e)
                 else:
                     print(w)
-                    self.original_text = self.plain_text_edit.toPlainText()
+                    self.original_text = self.text_edit.toPlainText()
                     self.checking_modify_document()
             else:
                 return
@@ -84,13 +87,14 @@ class SetActions:
         if self.file_name:
             try:
                 with open(self.file_name,'w',encoding='UTF8') as w:
-                    w.write(self.plain_text_edit.toPlainText())
-                    w.close()
+                    w.write(self.text_edit.toPlainText())
+                    
             except Exception as e:
                 print(e)
             else:
                 print(w)
-                self.original_text = self.plain_text_edit.toPlainText()
+                w.close()
+                self.original_text = self.text_edit.toPlainText()
                 self.checking_modify_document()
         else:
             self.file_name = self.previous_filename
