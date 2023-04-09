@@ -12,6 +12,7 @@ image_path = os.path.dirname(os.path.abspath(__file__))
 class MainWindow(QMainWindow,SetActions):
     def __init__(self):
         QMainWindow.__init__(self)
+        self.main_window = QMainWindow()
         self.set_init()
         self.set_ui()
         self.set_menu()
@@ -23,6 +24,7 @@ class MainWindow(QMainWindow,SetActions):
         self.window_title = self.file_name + ' - Windows 메모장'
         self.modify = False
         self.filter_option='텍스트 문서 (*.txt);;모든 파일 (*.*)'
+        self.windows = []
     
     def set_ui(self):
         self.setWindowIcon(QIcon('./image/notepad_icon.png'))
@@ -96,6 +98,7 @@ class MainWindow(QMainWindow,SetActions):
         
         self.saveas_action = QAction('다른 이름으로 저장(&A)...')
         self.saveas_action.setShortcut('Ctrl+Shift+S')
+        self.saveas_action.triggered.connect(self.save_as)
         
         self.file_separator1 = self.file_menu.addSeparator()
         
@@ -125,10 +128,15 @@ class MainWindow(QMainWindow,SetActions):
             self.exit_action
             ])
     
+    def new_window(self):
+        new_window = MainWindow()
+        self.windows.append(new_window)
+        new_window.show()
+    
     def closeEvent(self,event):
         print('close')
         if self.modify:
-            event.ignore()
+            self.save_messagebox()
 
 app = QApplication(sys.argv)
 window = MainWindow()
