@@ -4,14 +4,14 @@ import os
 class SetActions:
     def new(self):
         if self.modify:
-            self.save_messagebox()
+            self.save_status = 'new'
+            self.run_messagebox_button()
         else:
-            self.text_edit.clear()
-    
-    # def new_window(self,main_window):
-    #     new_window = main_window
-    #     self.windows.append(new_window)
-    #     new_window.show()
+            if self.file_name != '제목 없음':
+                self.file_name = '제목 없음'
+                self.text_edit.clear()
+                self.original_text = self.text_edit.toPlainText()
+                self.checking_modify_document()
     
     def open(self):
         if not self.previous_filename:
@@ -35,9 +35,10 @@ class SetActions:
             else:
                 self.file_name = self.previous_filename
         else:
-            self.save_messagebox()
+            self.save_status == 'open'
+            self.run_messagebox_button()
     
-    def save_messagebox(self):
+    def set_save_messagebox(self):
         messagebox=QMessageBox()
         messagebox.setWindowTitle('메모장')
         messagebox.setText('변경 내용을 {}에 저장 하시겠습니까?'.format(
@@ -46,20 +47,50 @@ class SetActions:
         messagebox.addButton('저장 안 함(N)',QMessageBox.NoRole)
         messagebox.addButton('취소',QMessageBox.RejectRole)
         self.get_messagebox_button = messagebox.exec()
-        self.set_messagebox_button()
     
-    def set_messagebox_button(self):
-        if self.get_messagebox_button == 0:
-            if self.file_name == '제목 없음':
-                print('save as')
-                self.save_as()
-            else:
-                print('save')
-                self.save()
-        elif self.get_messagebox_button == 1:
-            print('no')
-        elif self.get_messagebox_button == 2:
-            print('cancel')
+    def run_messagebox_button(self,event=None):
+        self.set_save_messagebox()
+        if self.save_status == 'new':
+            print(self.save_status)
+            if self.get_messagebox_button == 0:
+                print(self.file_name)
+                if self.file_name == '제목 없음':
+                    print('save as')
+                    self.save_as()
+                    self.new()
+                else:
+                    print('save')
+                    self.save()
+                    self.new()
+            elif self.get_messagebox_button == 1:
+                print('no')
+                self.text_edit.clear()
+                self.original_text = self.text_edit.toPlainText()
+                self.file_name = '제목 없음'
+                self.checking_modify_document()
+            elif self.get_messagebox_button == 2:
+                print('cancel')
+                return
+        elif self.save_status == 'open':
+            print(self.save_status)
+            if self.get_messagebox_button == 0:
+                print(self.file_name)
+                if self.file_name == '제목 없음':
+                    print('save as',self.save_status)
+                    self.save_as()
+                else:
+                    print('save',self.save_status)
+                    self.save()
+                    self.open()
+            elif self.get_messagebox_button == 1:
+                print('no',self.save_status)
+                self.text_edit.clear()
+                self.original_text = self.text_edit.toPlainText()
+                self.file_name = '제목 없음'
+                self.checking_modify_document()
+            elif self.get_messagebox_button == 2:
+                print('cancel',self.save_status)
+                return
     
     def save(self):
         print(self.file_name)
@@ -74,7 +105,6 @@ class SetActions:
                 except Exception as e:
                     print(e)
                 else:
-                    print(w)
                     self.original_text = self.text_edit.toPlainText()
                     self.checking_modify_document()
             else:
@@ -88,12 +118,10 @@ class SetActions:
             try:
                 with open(self.file_name,'w',encoding='UTF8') as w:
                     w.write(self.text_edit.toPlainText())
-                    
+                    w.close()
             except Exception as e:
                 print(e)
             else:
-                print(w)
-                w.close()
                 self.original_text = self.text_edit.toPlainText()
                 self.checking_modify_document()
         else:

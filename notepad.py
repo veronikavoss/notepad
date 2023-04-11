@@ -25,6 +25,7 @@ class MainWindow(QMainWindow,SetActions):
         self.modify = False
         self.filter_option='텍스트 문서 (*.txt);;모든 파일 (*.*)'
         self.windows = []
+        self.save_status = ''
     
     def set_ui(self):
         self.setWindowIcon(QIcon('./image/notepad_icon.png'))
@@ -50,11 +51,6 @@ class MainWindow(QMainWindow,SetActions):
         # self.grid_layout.addLayout(self.vlayout,0,0,1,1)
     
     def checking_modify_document(self):
-        # if not self.file_name:
-        #     self.file_name = self.setWindowTitle(self.previous_filename)
-        # else:
-        #     self.file_name = os.path.basename(self.file_name)
-        
         if self.original_text != self.text_edit.toPlainText():
             print('modify')
             self.setWindowTitle(f'*{os.path.basename(self.file_name)}' + ' - Windows 메모장')
@@ -134,9 +130,21 @@ class MainWindow(QMainWindow,SetActions):
         new_window.show()
     
     def closeEvent(self,event):
-        print('close')
         if self.modify:
-            self.save_messagebox()
+            self.run_messagebox_button(event)
+        #         if 0:
+        #             if self.file_name == '제목 없음':
+        #                 self.save_as()
+        #             else:
+        #                 self.save()
+        #         elif 1:
+        #             return
+        #         elif 2:
+        #             print('ignore')
+        #             event.ignore()
+        # else:
+        #     print('close')
+        #     # self.close()
 
 app = QApplication(sys.argv)
 window = MainWindow()
