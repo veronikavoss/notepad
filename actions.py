@@ -6,17 +6,20 @@ class SetActions:
         if self.modify:
             self.save_status = 'new'
             self.run_messagebox_button()
+            print(self.save_status)
         else:
             if self.file_name != '제목 없음':
+                self.save_status = 'new'
                 self.file_name = '제목 없음'
                 self.text_edit.clear()
                 self.original_text = self.text_edit.toPlainText()
                 self.checking_modify_document()
+                print(self.save_status)
     
     def open(self):
         if not self.previous_filename:
             self.previous_filename = self.windowTitle()
-        if not self.modify:
+        if not self.modify or self.save_status == 'open':
             self.file_name = QFileDialog.getOpenFileName(self,'열기','',self.filter_option)[0]
             if self.file_name:
                 try:
@@ -30,12 +33,12 @@ class SetActions:
                 else:
                     self.text_edit.setPlainText(text)
                     self.previous_filename = self.file_name
-                    print(self.previous_filename)
-                    print(self.windowTitle())
+                    self.save_status = 'opened'
+                    print(self.save_status)
             else:
                 self.file_name = self.previous_filename
         else:
-            self.save_status == 'open'
+            self.save_status = 'open'
             self.run_messagebox_button()
     
     def set_save_messagebox(self):
@@ -78,16 +81,14 @@ class SetActions:
                 if self.file_name == '제목 없음':
                     print('save as',self.save_status)
                     self.save_as()
+                    self.open()
                 else:
                     print('save',self.save_status)
                     self.save()
                     self.open()
             elif self.get_messagebox_button == 1:
                 print('no',self.save_status)
-                self.text_edit.clear()
-                self.original_text = self.text_edit.toPlainText()
-                self.file_name = '제목 없음'
-                self.checking_modify_document()
+                self.open()
             elif self.get_messagebox_button == 2:
                 print('cancel',self.save_status)
                 return
