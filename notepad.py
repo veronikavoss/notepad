@@ -130,21 +130,9 @@ class MainWindow(QMainWindow,SetActions):
         new_window.show()
     
     def closeEvent(self,event):
+        self.save_status = 'close'
         if self.modify:
             self.run_messagebox_button(event)
-        #         if 0:
-        #             if self.file_name == '제목 없음':
-        #                 self.save_as()
-        #             else:
-        #                 self.save()
-        #         elif 1:
-        #             return
-        #         elif 2:
-        #             print('ignore')
-        #             event.ignore()
-        # else:
-        #     print('close')
-        #     # self.close()
 
 app = QApplication(sys.argv)
 window = MainWindow()
