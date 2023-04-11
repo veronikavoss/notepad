@@ -23,7 +23,7 @@ class MainWindow(QMainWindow,SetActions):
         self.previous_filename = self.file_name
         self.window_title = self.file_name + ' - Windows 메모장'
         self.modify = False
-        self.filter_option='텍스트 문서 (*.txt);;모든 파일 (*.*)'
+        self.filter_option='텍스트 문서(*.txt);;모든 파일 (*.*)'
         self.windows = []
         self.save_status = ''
     
