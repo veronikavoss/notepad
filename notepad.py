@@ -26,6 +26,7 @@ class MainWindow(QMainWindow,SetActions):
         self.filter_option='텍스트 문서(*.txt);;모든 파일 (*.*)'
         self.windows = []
         self.save_status = ''
+        self.closed = False
     
     def set_ui(self):
         self.setWindowIcon(QIcon('./image/notepad_icon.png'))
@@ -130,9 +131,11 @@ class MainWindow(QMainWindow,SetActions):
         new_window.show()
     
     def closeEvent(self,event):
+        self.close_event = event
+        self.closed = True
         self.save_status = 'close'
         if self.modify:
-            self.run_messagebox_button(event)
+            self.run_messagebox_button()
 
 app = QApplication(sys.argv)
 window = MainWindow()

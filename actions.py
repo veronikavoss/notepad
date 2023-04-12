@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QFileDialog,QMessageBox
 import os
 
 class SetActions:
+    # file action
     def new(self):
         if self.modify:
             self.save_status = 'new'
@@ -19,7 +20,8 @@ class SetActions:
     def open(self):
         if not self.previous_filename:
             self.previous_filename = self.windowTitle()
-        if not self.modify or self.save_status == 'open':
+        if not self.modify or self.save_status == 'not save':
+            self.save_status = 'open'
             self.file_name = QFileDialog.getOpenFileName(self,'열기','',self.filter_option)[0]
             if self.file_name:
                 try:
@@ -64,7 +66,7 @@ class SetActions:
             else:
                 return
     
-    def save_as(self,event):
+    def save_as(self):
         if not self.previous_filename:
             self.previous_filename = self.windowTitle()
         self.file_name = QFileDialog.getSaveFileName(self,'다른 이름으로 저장',f'{self.file_name}',self.filter_option)[0]
@@ -84,7 +86,8 @@ class SetActions:
         else:
             self.save_status = 'not saved as'
             self.file_name = self.previous_filename
-            event.ignore()
+            if self.closed:
+                self.close_event.ignore()
             print(self.save_status)
     
     def set_save_messagebox(self):
@@ -96,7 +99,7 @@ class SetActions:
         messagebox.addButton('취소',QMessageBox.RejectRole)
         self.get_messagebox_button = messagebox.exec()
     
-    def run_messagebox_button(self,event=None):
+    def run_messagebox_button(self):
         self.set_save_messagebox()
         
         if self.save_status == 'new':
@@ -132,6 +135,7 @@ class SetActions:
                     self.save()
                     self.open()
             elif self.get_messagebox_button == 1:
+                self.save_status = 'not save'
                 print(self.save_status)
                 self.open()
             elif self.get_messagebox_button == 2:
@@ -145,7 +149,7 @@ class SetActions:
                 print(self.file_name)
                 if self.file_name == '제목 없음':
                     print(self.save_status)
-                    self.save_as(event)
+                    self.save_as()
                 else:
                     print(self.save_status)
                     self.save()
@@ -154,5 +158,8 @@ class SetActions:
                 print(self.save_status)
             elif self.get_messagebox_button == 2:
                 self.save_status = 'close canceled'
-                event.ignore()
+                self.close_event.ignore()
                 print(self.save_status)
+    
+    # edit action
+    
