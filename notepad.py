@@ -1,9 +1,10 @@
 import sys,os
 from PySide6.QtWidgets import (
-    QApplication,QMainWindow,QWidget,QGridLayout,QVBoxLayout,
+    QApplication,QMainWindow,QWidget,QGridLayout,QVBoxLayout,QFrame,
     QTextEdit,QMenuBar,QMenu,QStatusBar)
-from PySide6.QtGui import QAction,QIcon
-from PySide6.QtCore import Signal,QObject
+from PySide6.QtGui import QAction,QIcon,QTextDocument
+from PySide6.QtCore import Signal,QObject,Qt
+from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog
 
 from actions import SetActions
 
@@ -40,9 +41,16 @@ class MainWindow(QMainWindow,SetActions):
         self.vlayout.setContentsMargins(0,0,0,0)
         
         self.text_edit = QTextEdit(self.central_widget)
+        self.text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.text_edit.setFrameShape(QFrame.NoFrame)
         self.vlayout.addWidget(self.text_edit)
         self.original_text = self.text_edit.toPlainText()
+        self.document = QTextDocument(self.text_edit)
+        
+        # signal
         self.text_edit.textChanged.connect(self.checking_modify_document)
+        self.text_edit.copyAvailable.connect(self.select_available)
+        
         self.statusbar = QStatusBar(self)
         self.setStatusBar(self.statusbar)
         
@@ -73,10 +81,24 @@ class MainWindow(QMainWindow,SetActions):
         self.edit_menu = QMenu(self.menubar)
         self.edit_menu.setTitle('편집(&E)')
         self.menubar.addMenu(self.edit_menu)
+        self.set_edit_action()
+        
+        self.form_menu = QMenu(self.menubar)
+        self.form_menu.setTitle('서식(&O)')
+        self.menubar.addMenu(self.form_menu)
+        self.set_form_action()
+        
+        self.view_menu = QMenu(self.menubar)
+        self.view_menu.setTitle('보기(&V)')
+        self.menubar.addMenu(self.view_menu)
+        self.set_view_action()
+        
+        self.help_menu = QMenu(self.menubar)
+        self.help_menu.setTitle('도움말(&H)')
+        self.menubar.addMenu(self.help_menu)
+        self.set_help_action()
     
     def set_file_action(self):
-        # self = FileAction(self,self.text_edit,self.file_name)
-        
         self.new_action = QAction('새로 만들기(&N)')
         self.new_action.setShortcut('Ctrl+N')
         self.new_action.triggered.connect(self.new)
@@ -97,20 +119,19 @@ class MainWindow(QMainWindow,SetActions):
         self.saveas_action.setShortcut('Ctrl+Shift+S')
         self.saveas_action.triggered.connect(self.save_as)
         
-        self.file_separator1 = self.file_menu.addSeparator()
+        file_separator1 = self.file_menu.addSeparator()
         
         self.page_action = QAction('페이지 설정(&U)...')
+        self.page_action.triggered.connect(self.setup_page)
         
         self.print_action = QAction('인쇄(&P)...')
         self.print_action.setShortcut('Ctrl+P')
+        self.print_action.triggered.connect(self.setup_printer)
         
-        self.file_separator2 = self.file_menu.addSeparator()
+        file_separator2 = self.file_menu.addSeparator()
         
         self.exit_action = QAction('끝내기(&X)')
         self.exit_action.triggered.connect(self.close)
-        
-        self._action = QAction('&')
-        self._action.setShortcut('Ctrl+Shift+')
         
         self.file_menu.addActions([
             self.new_action,
@@ -118,12 +139,95 @@ class MainWindow(QMainWindow,SetActions):
             self.open_action,
             self.save_action,
             self.saveas_action,
-            self.file_separator1,
+            file_separator1,
             self.page_action,
             self.print_action,
-            self.file_separator2,
+            file_separator2,
             self.exit_action
             ])
+    
+    def set_edit_action(self):
+        self.undo_action = QAction('실행 취소(&U)')
+        self.undo_action.setShortcut('Ctrl+Z')
+        self.undo_action.triggered.connect(self.text_edit.undo)
+        
+        self.redo_action = QAction('다시 실행(&Y)')
+        self.redo_action.setShortcut('Ctrl+Y')
+        self.redo_action.triggered.connect(self.text_edit.redo)
+        
+        separator1 = self.edit_menu.addSeparator()
+        
+        self.cut_action = QAction('잘라내기(&T)')
+        self.cut_action.setShortcut('Ctrl+X')
+        self.cut_action.setDisabled(True)
+        
+        self.copy_action = QAction('복사(&C)')
+        self.copy_action.setShortcut('Ctrl+C')
+        self.copy_action.setDisabled(True)
+        # self.text_edit.copyAvailable.connect(self.text_edit_copy)
+        
+        self.paste_action = QAction('붙여넣기(&P)')
+        self.paste_action.setShortcut('Ctrl+V')
+        if self.text_edit.canPaste():
+            self.paste_action.setDisabled(False)
+        else:
+            self.paste_action.setDisabled(True)
+        self.paste_action.triggered.connect(self.text_edit.paste)
+        
+        self.delete_action = QAction('삭제(&D)')
+        self.delete_action.setShortcut('Del')
+        self.delete_action.setDisabled(True)
+        
+        separator2 = self.edit_menu.addSeparator()
+        
+        self._action = QAction('(&)')
+        self._action.setShortcut('Ctrl+Shift+')
+        
+        self._action = QAction('(&)')
+        self._action.setShortcut('Ctrl+Shift+')
+        
+        self._action = QAction('(&)')
+        self._action.setShortcut('Ctrl+Shift+')
+        
+        self._action = QAction('(&)')
+        self._action.setShortcut('Ctrl+Shift+')
+        
+        self._action = QAction('(&)')
+        self._action.setShortcut('Ctrl+Shift+')
+        
+        self._action = QAction('(&)')
+        self._action.setShortcut('Ctrl+Shift+')
+        
+        separator3 = self.edit_menu.addSeparator()
+        
+        self._action = QAction('(&)')
+        self._action.setShortcut('Ctrl+Shift+')
+        
+        self._action = QAction('(&)')
+        self._action.setShortcut('Ctrl+Shift+')
+        
+        self._action = QAction('(&)')
+        self._action.setShortcut('Ctrl+Shift+')
+        
+        self.edit_menu.addActions([
+            self.undo_action,
+            self.redo_action,
+            separator1,
+            self.cut_action,
+            self.copy_action,
+            self.paste_action,
+            self.delete_action,
+            separator2
+        ])
+    
+    def set_form_action(self):
+        pass
+    
+    def set_view_action(self):
+        pass
+    
+    def set_help_action(self):
+        pass
     
     def new_window(self):
         new_window = MainWindow()

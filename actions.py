@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QFileDialog,QMessageBox
+from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog,QPrinter
 import os
 
 class SetActions:
@@ -161,5 +162,29 @@ class SetActions:
                 self.close_event.ignore()
                 print(self.save_status)
     
-    # edit action
+    def setup_page(self):
+        printer = QPrinter()
+        page_setup_dialog = QPageSetupDialog(printer)
+        if page_setup_dialog.exec() == QPageSetupDialog.Accepted:
+            printer.setPageSize(page_setup_dialog.pageSetup().pageSize())
+            printer.setOrientation(page_setup_dialog.pageSetup().orientation())
+            printer.setPageMargins(page_setup_dialog.pageMargins())
     
+    def setup_printer(self):
+        if QPrintDialog().exec():
+            self.text_edit.print(QPrintDialog.printer())
+    
+    # edit action
+    def select_available(self,yes):
+        print(yes)
+        if yes:
+            self.cut_action.setDisabled(False)
+            self.copy_action.setDisabled(False)
+            self.delete_action.setDisabled(False)
+        else:
+            self.cut_action.setDisabled(True)
+            self.copy_action.setDisabled(True)
+            self.delete_action.setDisabled(True)
+    
+    def text_edit_copy(self):
+        return True
