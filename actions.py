@@ -175,6 +175,17 @@ class SetActions:
             self.text_edit.print(QPrintDialog.printer())
     
     # edit action
+    
+    def text_edit_copy(self):
+        return True
+    
+    def delete(self):
+        cursor = self.text_edit.textCursor()
+        if not cursor.hasSelection():
+            return
+        cursor.removeSelectedText()
+    
+    # slot
     def select_available(self,yes):
         print(yes)
         if yes:
@@ -186,5 +197,10 @@ class SetActions:
             self.copy_action.setDisabled(True)
             self.delete_action.setDisabled(True)
     
-    def text_edit_copy(self):
-        return True
+    def paste_available(self):
+        if self.text_edit.canPaste():
+            print('can paste')
+            self.paste_action.setDisabled(False)
+        else:
+            print('not paste')
+            self.paste_action.setDisabled(True)

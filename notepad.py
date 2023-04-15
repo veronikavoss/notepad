@@ -1,10 +1,9 @@
 import sys,os
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QWidget,QGridLayout,QVBoxLayout,QFrame,
-    QTextEdit,QMenuBar,QMenu,QStatusBar)
-from PySide6.QtGui import QAction,QIcon,QTextDocument
+    QPlainTextEdit,QMenuBar,QMenu,QStatusBar)
+from PySide6.QtGui import QAction,QIcon,QTextDocument,QKeySequence,QShortcut
 from PySide6.QtCore import Signal,QObject,Qt
-from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog
 
 from actions import SetActions
 
@@ -28,6 +27,7 @@ class MainWindow(QMainWindow,SetActions):
         self.windows = []
         self.save_status = ''
         self.closed = False
+        self.clipboard = QApplication.clipboard()
     
     def set_ui(self):
         self.setWindowIcon(QIcon('./image/notepad_icon.png'))
@@ -40,7 +40,7 @@ class MainWindow(QMainWindow,SetActions):
         self.vlayout = QVBoxLayout(self.central_widget)
         self.vlayout.setContentsMargins(0,0,0,0)
         
-        self.text_edit = QTextEdit(self.central_widget)
+        self.text_edit = QPlainTextEdit(self.central_widget)
         self.text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.text_edit.setFrameShape(QFrame.NoFrame)
         self.vlayout.addWidget(self.text_edit)
@@ -50,6 +50,7 @@ class MainWindow(QMainWindow,SetActions):
         # signal
         self.text_edit.textChanged.connect(self.checking_modify_document)
         self.text_edit.copyAvailable.connect(self.select_available)
+        self.clipboard.dataChanged.connect(self.paste_available)
         
         self.statusbar = QStatusBar(self)
         self.setStatusBar(self.statusbar)
@@ -97,6 +98,7 @@ class MainWindow(QMainWindow,SetActions):
         self.help_menu.setTitle('도움말(&H)')
         self.menubar.addMenu(self.help_menu)
         self.set_help_action()
+        self.menubar.triggered.connect(lambda:print(self.text_edit.canPaste) is True)
     
     def set_file_action(self):
         self.new_action = QAction('새로 만들기(&N)')
@@ -160,11 +162,12 @@ class MainWindow(QMainWindow,SetActions):
         self.cut_action = QAction('잘라내기(&T)')
         self.cut_action.setShortcut('Ctrl+X')
         self.cut_action.setDisabled(True)
+        self.cut_action.triggered.connect(self.text_edit.cut)
         
         self.copy_action = QAction('복사(&C)')
         self.copy_action.setShortcut('Ctrl+C')
         self.copy_action.setDisabled(True)
-        # self.text_edit.copyAvailable.connect(self.text_edit_copy)
+        self.copy_action.triggered.connect(self.text_edit.copy)
         
         self.paste_action = QAction('붙여넣기(&P)')
         self.paste_action.setShortcut('Ctrl+V')
@@ -177,6 +180,7 @@ class MainWindow(QMainWindow,SetActions):
         self.delete_action = QAction('삭제(&D)')
         self.delete_action.setShortcut('Del')
         self.delete_action.setDisabled(True)
+        self.delete_action.triggered.connect(self.delete)
         
         separator2 = self.edit_menu.addSeparator()
         
