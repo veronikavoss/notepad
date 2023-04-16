@@ -1,8 +1,10 @@
 from PySide6.QtWidgets import QFileDialog,QMessageBox
 from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog,QPrinter
 import os
-
-class SetActions:
+from notepad import MainWindow
+class SetActions(MainWindow):
+    def __init__(self):
+        super().__init__()
     # file action
     def new(self):
         if self.modify:
@@ -175,7 +177,6 @@ class SetActions:
             self.text_edit.print(QPrintDialog.printer())
     
     # edit action
-    
     def text_edit_copy(self):
         return True
     
@@ -186,23 +187,16 @@ class SetActions:
         cursor.removeSelectedText()
     
     # slot
+    def undo_available(self,available):
+        self.undo_action.setEnabled(available)
+    
+    def redo_available(self,available):
+        self.redo_action.setEnabled(available)
+    
     def select_available(self,yes):
-        print(yes)
-        if yes:
-            # self.cut_action.setDisabled(False)
-            # self.copy_action.setDisabled(False)
-            # self.delete_action.setDisabled(False)
-            self.edit_group.setDisabled(False)
-        else:
-            # self.cut_action.setDisabled(True)
-            # self.copy_action.setDisabled(True)
-            # self.delete_action.setDisabled(True)
-            self.edit_group.setDisabled(True)
+        self.cut_action.setEnabled(yes)
+        self.copy_action.setEnabled(yes)
+        self.delete_action.setEnabled(yes)
     
     def paste_available(self):
-        if self.text_edit.canPaste():
-            print('can paste')
-            self.paste_action.setDisabled(False)
-        else:
-            print('not paste')
-            self.paste_action.setDisabled(True)
+        self.paste_action.setEnabled(self.text_edit.canPaste())

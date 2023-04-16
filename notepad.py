@@ -2,23 +2,25 @@ import sys,os
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QWidget,QGridLayout,QVBoxLayout,QFrame,
     QPlainTextEdit,QMenuBar,QMenu,QStatusBar)
-from PySide6.QtGui import QAction,QIcon,QTextDocument,QUndoStack
-from PySide6.QtCore import Signal,QObject,Qt
+from PySide6.QtGui import QAction,QIcon
+from PySide6.QtCore import Qt
 
 from actions import SetActions
 
 image_path = os.path.dirname(os.path.abspath(__file__))
 
-class MainWindow(QMainWindow,SetActions):
+class MainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
         self.main_window = QMainWindow()
         self.set_init()
         self.set_ui()
         self.set_menu()
+        # self.test()
         self.show()
     
     def set_init(self):
+        self.action = SetActions()
         self.file_name = '제목 없음'
         self.previous_filename = self.file_name
         self.window_title = self.file_name + ' - Windows 메모장'
@@ -45,10 +47,11 @@ class MainWindow(QMainWindow,SetActions):
         self.text_edit.setFrameShape(QFrame.NoFrame)
         self.vlayout.addWidget(self.text_edit)
         self.original_text = self.text_edit.toPlainText()
-        self.document = QTextDocument(self.text_edit)
         
         # signal
         self.text_edit.textChanged.connect(self.checking_modify_document)
+        self.text_edit.undoAvailable.connect(self.action.undo_available)
+        self.text_edit.redoAvailable.connect(self.redo_available)
         self.text_edit.copyAvailable.connect(self.select_available)
         self.clipboard.dataChanged.connect(self.paste_available)
         
@@ -167,10 +170,7 @@ class MainWindow(QMainWindow,SetActions):
         
         self.paste_action = QAction('붙여넣기(&P)')
         self.paste_action.setShortcut('Ctrl+V')
-        if self.text_edit.canPaste():
-            self.paste_action.setDisabled(False)
-        else:
-            self.paste_action.setDisabled(True)
+        self.paste_action.setEnabled(self.text_edit.canPaste())
         self.paste_action.triggered.connect(self.text_edit.paste)
         
         self.delete_action = QAction('삭제(&D)')
@@ -180,31 +180,31 @@ class MainWindow(QMainWindow,SetActions):
         
         separator2 = self.edit_menu.addSeparator()
         
-        self._action = QAction('(&)')
-        self._action.setShortcut('Ctrl+Shift+')
+        self.bing_action = QAction('Bing으로 검색...(&S)')
+        self.bing_action.setShortcut('Ctrl+E')
         
-        self._action = QAction('(&)')
-        self._action.setShortcut('Ctrl+Shift+')
+        self.find_action = QAction('찾기...(&F)')
+        self.find_action.setShortcut('Ctrl+F')
         
-        self._action = QAction('(&)')
-        self._action.setShortcut('Ctrl+Shift+')
+        self.find_next_action = QAction('다음 찾기(&N)')
+        self.find_next_action.setShortcut('F3')
         
-        self._action = QAction('(&)')
-        self._action.setShortcut('Ctrl+Shift+')
+        self.find_previous_action = QAction('이전 찾기(&V)')
+        self.find_previous_action.setShortcut('Shift+F3')
         
-        self._action = QAction('(&)')
-        self._action.setShortcut('Ctrl+Shift+')
+        self.replace_action = QAction('바꾸기...(&R)')
+        self.replace_action.setShortcut('Ctrl+H')
         
-        self._action = QAction('(&)')
-        self._action.setShortcut('Ctrl+Shift+')
+        self.go_to_action = QAction('이동...(&G)')
+        self.go_to_action.setShortcut('Ctrl+G')
         
         separator3 = self.edit_menu.addSeparator()
         
-        self._action = QAction('(&)')
-        self._action.setShortcut('Ctrl+Shift+')
+        self.select_all_action = QAction('모두 선택(&A)')
+        self.select_all_action.setShortcut('Ctrl+A')
         
-        self._action = QAction('(&)')
-        self._action.setShortcut('Ctrl+Shift+')
+        self.time_date_action = QAction('시간/날짜(&D)')
+        self.time_date_action.setShortcut('F5')
         
         self._action = QAction('(&)')
         self._action.setShortcut('Ctrl+Shift+')
@@ -217,7 +217,16 @@ class MainWindow(QMainWindow,SetActions):
             self.copy_action,
             self.paste_action,
             self.delete_action,
-            separator2
+            separator2,
+            self.bing_action,
+            self.find_action,
+            self.find_next_action,
+            self.find_previous_action,
+            self.replace_action,
+            self.go_to_action,
+            separator3,
+            self.select_all_action,
+            self.time_date_action
         ])
     
     def set_form_action(self):
@@ -240,6 +249,9 @@ class MainWindow(QMainWindow,SetActions):
         self.save_status = 'close'
         if self.modify:
             self.run_messagebox_button()
+    
+    def test(self):
+        pass
 
 app = QApplication(sys.argv)
 window = MainWindow()
