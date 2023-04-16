@@ -189,13 +189,15 @@ class SetActions:
     def select_available(self,yes):
         print(yes)
         if yes:
-            self.cut_action.setDisabled(False)
-            self.copy_action.setDisabled(False)
-            self.delete_action.setDisabled(False)
+            # self.cut_action.setDisabled(False)
+            # self.copy_action.setDisabled(False)
+            # self.delete_action.setDisabled(False)
+            self.edit_group.setDisabled(False)
         else:
-            self.cut_action.setDisabled(True)
-            self.copy_action.setDisabled(True)
-            self.delete_action.setDisabled(True)
+            # self.cut_action.setDisabled(True)
+            # self.copy_action.setDisabled(True)
+            # self.delete_action.setDisabled(True)
+            self.edit_group.setDisabled(True)
     
     def paste_available(self):
         if self.text_edit.canPaste():

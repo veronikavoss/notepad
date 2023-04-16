@@ -1,40 +1,40 @@
 
 import sys
 from PySide6.QtCore import Signal, QObject
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtGui import QUndoStack,QUndoCommand
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 
-class Communicate(QObject):
-    closeApp = Signal()
+class MyTextEdit(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.undoStack = QUndoStack(self)
+        self.undoStack.setUndoLimit(10) # 최대 10개의 undo 명령만 기억합니다.
+        self.document().contentsChanged.connect(self.onChange)
 
-class MyObject(QObject):
-    my_signal = Signal()
+    def onChange(self):
+        # 컨텐츠가 변경되면 undoStack에 push합니다.
+        self.undoStack.push(MyTextEditState(self.document()))
 
-class MyApp(QMainWindow):
-    def __init__(self):
+class MyTextEditState(QUndoCommand):
+    def __init__(self, document):
         super().__init__()
-        self.initUI()
+        self.oldText = document.toPlainText()
+        self.newText = None
 
-    def initUI(self):
-        # self.c = Communicate()
-        # self.c.closeApp.connect(self.click)
-        self.ck=MyObject()
-        self.ck.my_signal.connect(self.click)
+    def redo(self):
+        self.setText(self.newText)
 
-        self.setWindowTitle('Emitting Signal')
-        self.setGeometry(300, 300, 300, 200)
-        self.show()
-    
-    # def emit_my_signal(self):
-    #     self.ck.my_signal.emit("Hello World",4)
+    def undo(self):
+        self.setText(self.oldText)
 
-    def click(self):
-        print('clicked')
+    def setText(self, text):
+        self.newText = text
+        self.document().setPlainText(text)
 
-    # def mousePressEvent(self):
-        # self.c.closeApp.emit(self.click)
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MyApp()
-    sys.exit(app.exec())
+    def mergeWith(self, other):
+        if not isinstance(other, MyTextEditState):
+            return False
+        if other.newText == self.oldText:
+            self.newText = other.newText
+            return True
+        return False

@@ -2,7 +2,7 @@ import sys,os
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QWidget,QGridLayout,QVBoxLayout,QFrame,
     QPlainTextEdit,QMenuBar,QMenu,QStatusBar)
-from PySide6.QtGui import QAction,QIcon,QTextDocument,QKeySequence,QShortcut
+from PySide6.QtGui import QAction,QIcon,QTextDocument,QUndoStack
 from PySide6.QtCore import Signal,QObject,Qt
 
 from actions import SetActions
@@ -54,11 +54,6 @@ class MainWindow(QMainWindow,SetActions):
         
         self.statusbar = QStatusBar(self)
         self.setStatusBar(self.statusbar)
-        
-        # self.grid_layout = QGridLayout(self.central_widget)
-        # self.grid_layout.setContentsMargins(0,0,0,0)
-        
-        # self.grid_layout.addLayout(self.vlayout,0,0,1,1)
     
     def checking_modify_document(self):
         if self.original_text != self.text_edit.toPlainText():
@@ -98,7 +93,6 @@ class MainWindow(QMainWindow,SetActions):
         self.help_menu.setTitle('도움말(&H)')
         self.menubar.addMenu(self.help_menu)
         self.set_help_action()
-        self.menubar.triggered.connect(lambda:print(self.text_edit.canPaste) is True)
     
     def set_file_action(self):
         self.new_action = QAction('새로 만들기(&N)')
@@ -151,10 +145,12 @@ class MainWindow(QMainWindow,SetActions):
     def set_edit_action(self):
         self.undo_action = QAction('실행 취소(&U)')
         self.undo_action.setShortcut('Ctrl+Z')
+        self.undo_action.setDisabled(True)
         self.undo_action.triggered.connect(self.text_edit.undo)
         
         self.redo_action = QAction('다시 실행(&Y)')
         self.redo_action.setShortcut('Ctrl+Y')
+        self.redo_action.setDisabled(True)
         self.redo_action.triggered.connect(self.text_edit.redo)
         
         separator1 = self.edit_menu.addSeparator()
