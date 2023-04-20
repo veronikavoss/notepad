@@ -54,8 +54,8 @@ class MainWindow(QMainWindow,SetActions):
         
         # signal
         self.text_edit.textChanged.connect(self.checking_modify_document)
-        self.text_edit.undoAvailable.connect(self.undo_available)
-        self.text_edit.redoAvailable.connect(self.redo_available)
+        self.text_edit.undoAvailable.connect(lambda available:self.undo_action.setEnabled(available))
+        self.text_edit.redoAvailable.connect(lambda available:self.redo_action.setEnabled(available))
         self.text_edit.copyAvailable.connect(self.select_available)
     
     def checking_modify_document(self):
@@ -82,10 +82,10 @@ class MainWindow(QMainWindow,SetActions):
         self.menubar.addMenu(self.edit_menu)
         self.set_edit_action()
         
-        self.form_menu = QMenu(self.menubar)
-        self.form_menu.setTitle('서식(&O)')
-        self.menubar.addMenu(self.form_menu)
-        self.set_form_action()
+        self.format_menu = QMenu(self.menubar)
+        self.format_menu.setTitle('서식(&O)')
+        self.menubar.addMenu(self.format_menu)
+        self.set_format_action()
         
         self.view_menu = QMenu(self.menubar)
         self.view_menu.setTitle('보기(&V)')
@@ -181,10 +181,10 @@ class MainWindow(QMainWindow,SetActions):
         
         separator2 = self.edit_menu.addSeparator()
         
-        self.bing_action = QAction('Bing으로 검색...(&S)')
+        self.bing_action = QAction('Bing으로 검색(&S)...')
         self.bing_action.setShortcut('Ctrl+E')
         
-        self.find_action = QAction('찾기...(&F)')
+        self.find_action = QAction('찾기(&F)...')
         self.find_action.triggered.connect(self.test)
         
         self.find_next_action = QAction('다음 찾기(&N)')
@@ -193,10 +193,10 @@ class MainWindow(QMainWindow,SetActions):
         self.find_previous_action = QAction('이전 찾기(&V)')
         self.find_previous_action.setShortcut('Shift+F3')
         
-        self.replace_action = QAction('바꾸기...(&R)')
+        self.replace_action = QAction('바꾸기(&R)...')
         self.replace_action.setShortcut('Ctrl+H')
         
-        self.go_to_action = QAction('이동...(&G)')
+        self.go_to_action = QAction('이동(&G)...')
         self.go_to_action.setShortcut('Ctrl+G')
         
         separator3 = self.edit_menu.addSeparator()
@@ -206,9 +206,6 @@ class MainWindow(QMainWindow,SetActions):
         
         self.time_date_action = QAction('시간/날짜(&D)')
         self.time_date_action.setShortcut('F5')
-        
-        self._action = QAction('(&)')
-        self._action.setShortcut('Ctrl+Shift+')
         
         self.edit_menu.addActions([
             self.undo_action,
@@ -230,14 +227,48 @@ class MainWindow(QMainWindow,SetActions):
             self.time_date_action
         ])
     
-    def set_form_action(self):
-        pass
+    def set_format_action(self):
+        self.word_wrap_action = QAction('자동 줄 바꿈(W&)')
+        self.word_wrap_action.setCheckable(True)
+        self.word_wrap_action.setChecked(True)
+        
+        self.set_font_action = QAction('글꼴(F&)...')
+        self.set_font_action.setShortcut('Ctrl+Shift+')
+        
+        self.format_menu.addActions([self.word_wrap_action,self.set_font_action])
     
     def set_view_action(self):
-        pass
+        self.zoom_action = self.view_menu.addMenu('확대하기/축소하기')
+        self.zoom_in = QAction('확대(&I)')
+        self.zoom_in.setShortcut('Ctrl+Plus')
+        self.zoom_out = QAction('축소(&O)')
+        self.zoom_out.setShortcut('Ctrl+Minus')
+        self.restore_default_zoom = QAction('확대하기/축소하기 기본값 복원(&)')
+        self.restore_default_zoom.setShortcut('Ctrl+0')
+        
+        self.status_bar_action = QAction('상태 표시줄(S&)')
+        self.status_bar_action.setCheckable(True)
+        self.status_bar_action.setChecked(True)
+        
+        self.view_menu.addMenu(self.zoom_action)
+        self.zoom_action.addActions([
+            self.zoom_in,self.zoom_out,self.restore_default_zoom])
+        self.view_menu.addAction(self.status_bar_action)
     
     def set_help_action(self):
-        pass
+        self.view_help_action = QAction('도움말 보기(H&)')
+        
+        self.send_feedback_action = QAction('피드백 보내기(F&)')
+        
+        separator = self.help_menu.addSeparator()
+        
+        self.about_notepad_action = QAction('메모장 정보(A&)')
+        
+        self.help_menu.addActions([
+            self.view_help_action,
+            self.send_feedback_action,
+            separator,
+            self.about_notepad_action])
     
     def new_window(self):
         new_window = MainWindow()

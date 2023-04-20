@@ -199,11 +199,11 @@ class SetActions:
             self.find_next_action.setEnabled(False)
             self.find_previous_action.setEnabled(False)
     
-    def undo_available(self,available):
-        self.undo_action.setEnabled(available)
+    # def undo_available(self,available):
+    #     self.undo_action.setEnabled(available)
     
-    def redo_available(self,available):
-        self.redo_action.setEnabled(available)
+    # def redo_available(self,available):
+    #     self.redo_action.setEnabled(available)
     
     def select_available(self,yes):
         self.cut_action.setEnabled(yes)
