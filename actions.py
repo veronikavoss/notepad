@@ -192,8 +192,12 @@ class SetActions:
         
         if self.text_edit.toPlainText():
             self.find_action.setEnabled(True)
+            self.find_next_action.setEnabled(True)
+            self.find_previous_action.setEnabled(True)
         else:
             self.find_action.setEnabled(False)
+            self.find_next_action.setEnabled(False)
+            self.find_previous_action.setEnabled(False)
     
     def undo_available(self,available):
         self.undo_action.setEnabled(available)

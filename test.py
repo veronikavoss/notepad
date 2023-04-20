@@ -1,32 +1,28 @@
-from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QApplication, QMainWindow, QMenu
+from PySide6.QtGui import QColor, QPalette
+from PySide6.QtWidgets import QApplication, QLineEdit
 
-class MyWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
+app = QApplication()
 
-        # 메뉴 생성
-        menubar = self.menuBar()
-        menu=menubar.addMenu("File")
+# QLineEdit 생성
+line_edit = QLineEdit()
 
-        # 메뉴 항목 생성
-        action_new = QAction("New", self)
-        action_open = QAction("Open", self)
-        action_save = QAction("Save", self)
+# QPalette 생성
+palette = QPalette()
 
-        # 메뉴에 항목 추가
-        menu.addAction(action_new)
-        menu.addAction(action_open)
-        menu.addAction(action_save)
+# 선택된 항목 글자색 설정
+palette.setColor(QPalette.HighlightedText, QColor(255, 255, 255)) # 흰색으로 설정
 
-        # 시그널 연결
-        menu.aboutToShow.connect(lambda:print('m'))
-        menu.triggered.connect(self.onMenuTriggered)
+# 선택된 항목이 비활성화될 때의 글자색 설정
+palette.setColor(QPalette.HighlightedText, QColor(0, 0, 0)) # 회색으로 설정
 
-    def onMenuTriggered(self, action):
-        print(action.text() + " is selected.")
+# QLineEdit의 palette 설정
+line_edit.setPalette(palette)
 
-app = QApplication([])
-window = MyWindow()
-window.show()
+# QLineEdit 표시
+line_edit.show()
+
+# 창을 비활성화하고 선택된 항목이 비활성화될 때의 글자색 표시
+line_edit.setEnabled(True)
+
+# 이벤트 루프 시작
 app.exec()

@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QApplication,QMainWindow,QWidget,QGridLayout,QFrame,
     QPlainTextEdit,QMenuBar,QMenu,QStatusBar,
     QDialog,QLabel,QLineEdit,QPushButton,QHBoxLayout,QVBoxLayout,QCheckBox,QRadioButton,QGroupBox,QMessageBox)
-from PySide6.QtGui import QAction,QIcon,QFont,QTextCursor
+from PySide6.QtGui import QAction,QIcon,QFont,QTextCursor,QColor,QPalette
 from PySide6.QtCore import Qt
 
 from actions import SetActions
@@ -27,7 +27,11 @@ class MainWindow(QMainWindow,SetActions):
         self.windows = []
         self.save_status = ''
         self.closed = False
-        self.clipboard = QApplication.clipboard()
+        
+        # select color
+        self.palette = QPalette()
+        self.palette.setColor(QPalette.Highlight, QColor(0, 120, 215))
+        self.palette.setColor(QPalette.HighlightedText, QColor(255, 255, 255))
     
     def set_ui(self):
         self.setWindowIcon(QIcon('./image/notepad_icon.png'))
@@ -46,6 +50,7 @@ class MainWindow(QMainWindow,SetActions):
         self.text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.text_edit.setFrameShape(QFrame.NoFrame)
         self.original_text = self.text_edit.toPlainText()
+        self.text_edit.setPalette(self.palette)
         
         # signal
         self.text_edit.textChanged.connect(self.checking_modify_document)
@@ -263,6 +268,7 @@ class MainWindow(QMainWindow,SetActions):
         # widget
         self.label = QLabel('찾을 내용')
         self.find_line_edit = QLineEdit()
+        self.find_line_edit.setPalette(self.palette)
         
         self.find_next_button = QPushButton('다음 찾기(&F)')
         if self.text_edit.toPlainText():
