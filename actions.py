@@ -1,10 +1,9 @@
 from PySide6.QtWidgets import QFileDialog,QMessageBox
 from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog,QPrinter
+from PySide6.QtGui import QIcon,QFont
 import os
-from notepad import MainWindow
-class SetActions(MainWindow):
-    def __init__(self):
-        super().__init__()
+
+class SetActions:
     # file action
     def new(self):
         if self.modify:
@@ -94,12 +93,16 @@ class SetActions(MainWindow):
             print(self.save_status)
     
     def set_save_messagebox(self):
+        font = QFont()
+        font.setPointSize(12)
         messagebox=QMessageBox()
+        messagebox.setFont(font)
         messagebox.setWindowTitle('메모장')
         messagebox.setText(f'변경 내용을 {self.file_name}에 저장 하시겠습니까?')
-        messagebox.addButton('저장(S)',QMessageBox.YesRole)
-        messagebox.addButton('저장 안 함(N)',QMessageBox.NoRole)
-        messagebox.addButton('취소',QMessageBox.RejectRole)
+        messagebox.setStyleSheet('color: #003399')
+        messagebox.addButton('저장(S)',QMessageBox.YesRole).setStyleSheet('color: black')
+        messagebox.addButton('저장 안 함(N)',QMessageBox.NoRole).setStyleSheet('color: black')
+        messagebox.addButton('취소',QMessageBox.RejectRole).setStyleSheet('color: black')
         self.get_messagebox_button = messagebox.exec()
     
     def run_messagebox_button(self):
@@ -177,9 +180,6 @@ class SetActions(MainWindow):
             self.text_edit.print(QPrintDialog.printer())
     
     # edit action
-    def text_edit_copy(self):
-        return True
-    
     def delete(self):
         cursor = self.text_edit.textCursor()
         if not cursor.hasSelection():
@@ -187,6 +187,14 @@ class SetActions(MainWindow):
         cursor.removeSelectedText()
     
     # slot
+    def show_edit_menu(self):
+        self.paste_action.setEnabled(self.text_edit.canPaste())
+        
+        if self.text_edit.toPlainText():
+            self.find_action.setEnabled(True)
+        else:
+            self.find_action.setEnabled(False)
+    
     def undo_available(self,available):
         self.undo_action.setEnabled(available)
     
@@ -198,5 +206,8 @@ class SetActions(MainWindow):
         self.copy_action.setEnabled(yes)
         self.delete_action.setEnabled(yes)
     
-    def paste_available(self):
-        self.paste_action.setEnabled(self.text_edit.canPaste())
+    def line_edit_text_changer(self):
+        if self.line_edit.text():
+            self.find_next_button.setEnabled(True)
+        else:
+            self.find_next_button.setEnabled(False)

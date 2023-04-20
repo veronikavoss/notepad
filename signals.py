@@ -5,43 +5,40 @@ from PySide6.QtWidgets import QApplication,QWidget,QMainWindow,QPlainTextEdit,QM
 
 
 
-class PasteAvailable(QObject):
-    pasteAvailable = Signal()
+class FindAvailable(QObject):
+    check = Signal()
+    def __init__(self):
+        super().__init__()
 
-class Communicate(QObject):
-    closeApp = Signal()
+    def mousePressEvent(self,arg=None):
+        self.check.emit()
 
 class MyApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
-
+    
     def initUI(self):
-        # self.c = Communicate()
-        # self.c.closeApp.connect(self.click)
-        self.paste_available =  PasteAvailable()
-
         self.setWindowTitle('Emitting Signal')
         self.menubar = QMenuBar(self)
+        self.menubar.emit()
         self.setMenuBar(self.menubar)
-        self.menubar.addMenu('file')
+        self.file_menu = self.menubar.addMenu('file')
+        self.file_menu.addAction('find')
         
-        # self.cwidget = QWidget(self)
         self.text_edit = QPlainTextEdit(self)
         self.setCentralWidget(self.text_edit)
-        self.paste_available.pasteAvailable.connect(self.click)
+        
+        self.findavailable = FindAvailable()
+        self.findavailable.check.connect(self.click)
+        
         self.show()
+    
+    def mousePressEvent(self,arg=None):
+        self.findavailable.mousePressEvent()
     
     def click(self):
         print('clicked')
-        if self.text_edit.canPaste():
-            print('paste')
-        else:
-            print('not paste')
-
-    def mousePressEvent(self,arg=None):
-        # self.c.closeApp.emit()
-        self.paste_available.pasteAvailable.emit()
 
 
 if __name__ == '__main__':
