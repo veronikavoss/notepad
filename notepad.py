@@ -48,7 +48,7 @@ class MainWindow(QMainWindow,SetActions):
                 geometry = list(map(int,r.read().split(',')))
                 self.setGeometry(geometry[0],geometry[1],geometry[2],geometry[3])
             except:
-                self.setGeometry(0,0,1280,720)
+                self.setGeometry(0,30,1280,720)
     
     def set_text_edit(self):
         self.text_edit = QPlainTextEdit()
