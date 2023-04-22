@@ -31,10 +31,10 @@ class SetActions:
                 with open(self.file_name,'rb') as r:
                     rawdata = r.read()
                     result = chardet.detect(rawdata)
-                    encoding = result["encoding"]
-                    print(encoding)
+                    self.encoding = result["encoding"]
+                    print(self.encoding)
                 try:
-                    with open(self.file_name,'r',encoding=encoding) as r:
+                    with open(self.file_name,'r',encoding=self.encoding) as r:
                         text = r.read()
                         self.original_text = text
                         r.close()

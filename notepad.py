@@ -8,7 +8,7 @@ from PySide6.QtCore import Qt
 
 from actions import SetActions
 
-image_path = os.path.dirname(os.path.abspath(__file__))
+CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 class MainWindow(QMainWindow,SetActions):
     def __init__(self):
@@ -36,11 +36,19 @@ class MainWindow(QMainWindow,SetActions):
     def set_ui(self):
         self.setWindowIcon(QIcon('./image/notepad_icon.png'))
         self.setWindowTitle(self.window_title)
-        self.resize(1280,720)
+        self.set_geometry()
         
         self.set_text_edit()
         self.set_menu()
         self.set_statusbar()
+    
+    def set_geometry(self):
+        with open(str(os.path.join(CURRENT_PATH,'config.txt')),'r') as r:
+            try:
+                geometry = list(map(int,r.read().split(',')))
+                self.setGeometry(geometry[0],geometry[1],geometry[2],geometry[3])
+            except:
+                self.setGeometry(0,0,1280,720)
     
     def set_text_edit(self):
         self.text_edit = QPlainTextEdit()
@@ -49,6 +57,7 @@ class MainWindow(QMainWindow,SetActions):
         self.text_edit.setFrameShape(QFrame.NoFrame)
         self.original_text = self.text_edit.toPlainText()
         self.text_edit.setPalette(self.palette)
+        self.encoding = None
         
         # signal
         self.text_edit.cursorPositionChanged.connect(self.set_cursor_position)
@@ -273,17 +282,22 @@ class MainWindow(QMainWindow,SetActions):
         self.statusbar = QStatusBar(self)
         self.setStatusBar(self.statusbar)
         
-        self.cursor_position_label = QLabel(f'Ln {self.set_cursor_position()[0]}, Col {self.set_cursor_position()[1]}')
-        self.statusbar.addWidget(self.cursor_position_label)
-        print(self.set_cursor_position())
+        separator1 = QLabel('')
+        separator1.setAlignment(Qt.AlignRight)
+        self.statusbar.addPermanentWidget(separator1)
+        
+        self.cursor_position_label = QLabel()
+        self.cursor_position_label.setAlignment(Qt.AlignLeft)
+        self.cursor_position_label.setMinimumWidth(140)
+        self.statusbar.addPermanentWidget(self.cursor_position_label)
+        self.set_cursor_position()
     
     def set_cursor_position(self):
         text = self.text_edit.toPlainText()
         cursor = self.text_edit.textCursor()
         cursor_position = cursor.blockNumber()+1,cursor.columnNumber()+1
-        # self.cursor_position_label.setText(f'Ln {cursor_position[0]}, Col {cursor_position[1]}')
-        print(cursor_position)
-        return cursor_position
+        self.cursor_position_label.setText(f'Ln {cursor_position[0]}, Col {cursor_position[1]}')
+        print(cursor_position,self.encoding)
     
     def new_window(self):
         new_window = MainWindow()
@@ -296,6 +310,10 @@ class MainWindow(QMainWindow,SetActions):
         self.save_status = 'close'
         if self.modify:
             self.run_messagebox_button()
+        
+        with open(str(os.path.join(CURRENT_PATH,'config.txt')),'w') as w:
+            w.write(f'{self.x()},{self.y()+30},{self.width()},{self.height()}')
+            w.close()
     
     def test(self):
         # init
