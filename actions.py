@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QFileDialog,QMessageBox
 from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog,QPrinter
 from PySide6.QtGui import QIcon,QFont
-import os
+import os,chardet
 
 class SetActions:
     # file action
@@ -25,14 +25,25 @@ class SetActions:
         if not self.modify or self.save_status == 'not save':
             self.save_status = 'open'
             self.file_name = QFileDialog.getOpenFileName(self,'열기','',self.filter_option)[0]
+            print(self.file_name)
             if self.file_name:
+                # auto encoding search
+                with open(self.file_name,'rb') as r:
+                    rawdata = r.read()
+                    result = chardet.detect(rawdata)
+                    encoding = result["encoding"]
+                    print(encoding)
                 try:
-                    with open(self.file_name,'r',encoding='ansi') as r:
+                    with open(self.file_name,'r',encoding=encoding) as r:
                         text = r.read()
                         self.original_text = text
                         r.close()
                 except Exception as e:
                     print(e)
+                    if 'UnicodeDecodeError' in e:
+                        print(e)
+                # except UnicodeDecodeError as e:
+                #     print("Error:", str(e))
                 else:
                     self.text_edit.setPlainText(text)
                     self.previous_filename = self.file_name

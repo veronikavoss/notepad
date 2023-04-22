@@ -28,7 +28,7 @@ class MainWindow(QMainWindow,SetActions):
         self.save_status = ''
         self.closed = False
         
-        # select color
+        # selected color
         self.palette = QPalette()
         self.palette.setColor(QPalette.Highlight, QColor(0, 120, 215))
         self.palette.setColor(QPalette.HighlightedText, QColor(255, 255, 255))
@@ -40,9 +40,7 @@ class MainWindow(QMainWindow,SetActions):
         
         self.set_text_edit()
         self.set_menu()
-        
-        self.statusbar = QStatusBar(self)
-        self.setStatusBar(self.statusbar)
+        self.set_statusbar()
     
     def set_text_edit(self):
         self.text_edit = QPlainTextEdit()
@@ -53,6 +51,7 @@ class MainWindow(QMainWindow,SetActions):
         self.text_edit.setPalette(self.palette)
         
         # signal
+        self.text_edit.cursorPositionChanged.connect(self.set_cursor_position)
         self.text_edit.textChanged.connect(self.checking_modify_document)
         self.text_edit.undoAvailable.connect(lambda available:self.undo_action.setEnabled(available))
         self.text_edit.redoAvailable.connect(lambda available:self.redo_action.setEnabled(available))
@@ -270,6 +269,22 @@ class MainWindow(QMainWindow,SetActions):
             separator,
             self.about_notepad_action])
     
+    def set_statusbar(self):
+        self.statusbar = QStatusBar(self)
+        self.setStatusBar(self.statusbar)
+        
+        self.cursor_position_label = QLabel(f'Ln {self.set_cursor_position()[0]}, Col {self.set_cursor_position()[1]}')
+        self.statusbar.addWidget(self.cursor_position_label)
+        print(self.set_cursor_position())
+    
+    def set_cursor_position(self):
+        text = self.text_edit.toPlainText()
+        cursor = self.text_edit.textCursor()
+        cursor_position = cursor.blockNumber()+1,cursor.columnNumber()+1
+        # self.cursor_position_label.setText(f'Ln {cursor_position[0]}, Col {cursor_position[1]}')
+        print(cursor_position)
+        return cursor_position
+    
     def new_window(self):
         new_window = MainWindow()
         self.windows.append(new_window)
@@ -283,6 +298,15 @@ class MainWindow(QMainWindow,SetActions):
             self.run_messagebox_button()
     
     def test(self):
+        # init
+        cursor = self.text_edit.textCursor()
+        selected_text = cursor.selectedText()
+        if selected_text:
+            print("선택된 텍스트: ", selected_text)
+        else:
+            print("선택된 텍스트가 없습니다.")
+        
+        # ui
         self.find_window = QDialog(self)
         self.find_window.setWindowTitle('찾기')
         self.find_window.setFixedSize(392,156)
@@ -297,16 +321,20 @@ class MainWindow(QMainWindow,SetActions):
         self.horizon_direction_layout = QHBoxLayout()
         
         # widget
-        self.label = QLabel('찾을 내용')
+        self.label = QLabel('찾을 내용 ')
         self.find_line_edit = QLineEdit()
         self.find_line_edit.setPalette(self.palette)
+        self.find_line_edit.setText(selected_text)
+        self.find_line_edit.selectAll()
         
         self.find_next_button = QPushButton('다음 찾기(&F)')
-        if self.text_edit.toPlainText():
+        if self.find_line_edit.text():
             self.find_next_button.setEnabled(True)
         else:
             self.find_next_button.setEnabled(False)
-        self.cancel_button = QPushButton('취소')
+        self.find_cancel_button = QPushButton('취소')
+        self.find_cancel_button.clicked.connect(self.set_cursor_position)
+        # self.find_cancel_button.clicked.connect(self.find_window.reject)
         
         self.checkbox1 = QCheckBox('대/소문자 구분(&C)')
         self.checkbox2 = QCheckBox('주위에 배치(&R)')
@@ -326,7 +354,7 @@ class MainWindow(QMainWindow,SetActions):
         self.grid_layout.addLayout(self.horizon_lineedit_layout,0,0,1,3)
         
         self.grid_layout.addWidget(self.find_next_button,0,4)
-        self.grid_layout.addWidget(self.cancel_button,1,4)
+        self.grid_layout.addWidget(self.find_cancel_button,1,4)
         
         self.vertical_checkbox_layout.addWidget(self.checkbox1)
         self.vertical_checkbox_layout.addWidget(self.checkbox2)
@@ -352,6 +380,7 @@ class MainWindow(QMainWindow,SetActions):
                 # 검색된 영역을 스크롤합니다.
                 cursor.select(QTextCursor.WordUnderCursor)
                 self.text_edit.ensureCursorVisible()
+
 
 app = QApplication(sys.argv)
 window = MainWindow()
