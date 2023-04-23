@@ -27,6 +27,7 @@ class MainWindow(QMainWindow,SetActions):
         self.windows = []
         self.save_status = ''
         self.closed = False
+        self.default_zoom = 100
         
         # selected color
         self.palette = QPalette()
@@ -247,10 +248,15 @@ class MainWindow(QMainWindow,SetActions):
     
     def set_view_action(self):
         self.zoom_action = self.view_menu.addMenu('확대하기/축소하기')
+        
         self.zoom_in = QAction('확대(&I)')
-        self.zoom_in.setShortcut('Ctrl+Plus')
+        self.zoom_in.setShortcut('Ctrl++')
+        self.zoom_in.triggered.connect(self.set_zoom_in)
+        
         self.zoom_out = QAction('축소(&O)')
-        self.zoom_out.setShortcut('Ctrl+Minus')
+        self.zoom_out.setShortcut('Ctrl+-')
+        self.zoom_out.triggered.connect(self.set_zoom_out)
+        
         self.restore_default_zoom = QAction('확대하기/축소하기 기본값 복원(&)')
         self.restore_default_zoom.setShortcut('Ctrl+0')
         
@@ -291,6 +297,9 @@ class MainWindow(QMainWindow,SetActions):
         self.cursor_position_label.setMinimumWidth(140)
         self.statusbar.addPermanentWidget(self.cursor_position_label)
         self.set_cursor_position()
+        
+        self.zoom_label = QLabel(f'{self.default_zoom}%')
+        self.statusbar.addPermanentWidget(self.zoom_label)
     
     def set_cursor_position(self):
         text = self.text_edit.toPlainText()
@@ -314,6 +323,24 @@ class MainWindow(QMainWindow,SetActions):
         with open(str(os.path.join(CURRENT_PATH,'config.txt')),'w') as w:
             w.write(f'{self.x()},{self.y()+30},{self.width()},{self.height()}')
             w.close()
+    
+    def set_zoom_in(self):
+        font = self.text_edit.font()
+        zoom_value = 1.1
+        font_size = font.pointSizeF() * zoom_value  # 확대 비율 설정
+        font.setPointSizeF(font_size)
+        self.text_edit.setFont(font)
+        self.default_zoom += 10
+        self.zoom_label.setText(f'{self.default_zoom}%')
+    
+    def set_zoom_out(self):
+        font = self.text_edit.font()
+        zoom_value = 0.9
+        font_size = font.pointSizeF() * zoom_value  # 축소 비율 설정
+        font.setPointSizeF(font_size)
+        self.text_edit.setFont(font)
+        self.default_zoom -= 10
+        self.zoom_label.setText(f'{self.default_zoom}%')
     
     def test(self):
         # init
