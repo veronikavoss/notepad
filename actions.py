@@ -40,14 +40,11 @@ class SetActions:
                         r.close()
                 except Exception as e:
                     print(e)
-                    if 'UnicodeDecodeError' in e:
-                        print(e)
-                # except UnicodeDecodeError as e:
-                #     print("Error:", str(e))
                 else:
                     self.text_edit.setPlainText(text)
                     self.previous_filename = self.file_name
                     self.save_status = 'opened'
+                    self.encoding_label.setText(self.encoding.upper())
                     print(self.save_status)
             else:
                 self.save_status = 'open canceled'
@@ -226,3 +223,22 @@ class SetActions:
             self.find_next_button.setEnabled(True)
         else:
             self.find_next_button.setEnabled(False)
+    
+    # view action
+    def set_zoom_in(self):
+        font = self.text_edit.font()
+        zoom_value = 1.1
+        font_size = font.pointSizeF() * zoom_value  # 확대 비율 설정
+        font.setPointSizeF(font_size)
+        self.text_edit.setFont(font)
+        self.default_zoom += 10
+        self.zoom_label.setText(f'{self.default_zoom}%')
+    
+    def set_zoom_out(self):
+        font = self.text_edit.font()
+        zoom_value = 0.9
+        font_size = font.pointSizeF() * zoom_value  # 축소 비율 설정
+        font.setPointSizeF(font_size)
+        self.text_edit.setFont(font)
+        self.default_zoom -= 10
+        self.zoom_label.setText(f'{self.default_zoom}%')

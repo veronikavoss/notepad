@@ -28,6 +28,7 @@ class MainWindow(QMainWindow,SetActions):
         self.save_status = ''
         self.closed = False
         self.default_zoom = 100
+        self.encoding = 'UTF-8'
         
         # selected color
         self.palette = QPalette()
@@ -58,7 +59,6 @@ class MainWindow(QMainWindow,SetActions):
         self.text_edit.setFrameShape(QFrame.NoFrame)
         self.original_text = self.text_edit.toPlainText()
         self.text_edit.setPalette(self.palette)
-        self.encoding = None
         
         # signal
         self.text_edit.cursorPositionChanged.connect(self.set_cursor_position)
@@ -259,6 +259,7 @@ class MainWindow(QMainWindow,SetActions):
         
         self.restore_default_zoom = QAction('확대하기/축소하기 기본값 복원(&)')
         self.restore_default_zoom.setShortcut('Ctrl+0')
+        self.restore_default_zoom.triggered.connect(lambda:print())
         
         self.status_bar_action = QAction('상태 표시줄(S&)')
         self.status_bar_action.setCheckable(True)
@@ -294,19 +295,30 @@ class MainWindow(QMainWindow,SetActions):
         
         self.cursor_position_label = QLabel()
         self.cursor_position_label.setAlignment(Qt.AlignLeft)
-        self.cursor_position_label.setMinimumWidth(140)
+        self.cursor_position_label.setMinimumWidth(130)
         self.statusbar.addPermanentWidget(self.cursor_position_label)
         self.set_cursor_position()
         
         self.zoom_label = QLabel(f'{self.default_zoom}%')
+        self.zoom_label.setMinimumWidth(45)
         self.statusbar.addPermanentWidget(self.zoom_label)
+        
+        self.eol_label = QLabel('Windows (CRLF)')
+        self.eol_label.setMinimumWidth(120)
+        self.statusbar.addPermanentWidget(self.eol_label)
+        
+        self.encoding_label = QLabel(self.encoding)
+        self.encoding_label.setMinimumWidth(90)
+        self.statusbar.addPermanentWidget(self.encoding_label)
+    
+    def plus(self):
+        self.encoding_label.setText('t')
     
     def set_cursor_position(self):
         text = self.text_edit.toPlainText()
         cursor = self.text_edit.textCursor()
         cursor_position = cursor.blockNumber()+1,cursor.columnNumber()+1
         self.cursor_position_label.setText(f'Ln {cursor_position[0]}, Col {cursor_position[1]}')
-        print(cursor_position,self.encoding)
     
     def new_window(self):
         new_window = MainWindow()
@@ -323,24 +335,6 @@ class MainWindow(QMainWindow,SetActions):
         with open(str(os.path.join(CURRENT_PATH,'config.txt')),'w') as w:
             w.write(f'{self.x()},{self.y()+30},{self.width()},{self.height()}')
             w.close()
-    
-    def set_zoom_in(self):
-        font = self.text_edit.font()
-        zoom_value = 1.1
-        font_size = font.pointSizeF() * zoom_value  # 확대 비율 설정
-        font.setPointSizeF(font_size)
-        self.text_edit.setFont(font)
-        self.default_zoom += 10
-        self.zoom_label.setText(f'{self.default_zoom}%')
-    
-    def set_zoom_out(self):
-        font = self.text_edit.font()
-        zoom_value = 0.9
-        font_size = font.pointSizeF() * zoom_value  # 축소 비율 설정
-        font.setPointSizeF(font_size)
-        self.text_edit.setFont(font)
-        self.default_zoom -= 10
-        self.zoom_label.setText(f'{self.default_zoom}%')
     
     def test(self):
         # init
@@ -425,7 +419,6 @@ class MainWindow(QMainWindow,SetActions):
                 # 검색된 영역을 스크롤합니다.
                 cursor.select(QTextCursor.WordUnderCursor)
                 self.text_edit.ensureCursorVisible()
-
 
 app = QApplication(sys.argv)
 window = MainWindow()
