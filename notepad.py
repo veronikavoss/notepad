@@ -1,9 +1,9 @@
-import sys,os
+import sys,os,json
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QWidget,QGridLayout,QFrame,
     QPlainTextEdit,QMenuBar,QMenu,QStatusBar,
     QDialog,QLabel,QLineEdit,QPushButton,QHBoxLayout,QVBoxLayout,QCheckBox,QRadioButton,QGroupBox,QMessageBox)
-from PySide6.QtGui import QAction,QIcon,QFont,QTextCursor,QColor,QPalette
+from PySide6.QtGui import QAction,QIcon,QFont,QTextCursor,QColor,QPalette,QTextDocument
 from PySide6.QtCore import Qt
 
 from actions import SetActions
@@ -30,27 +30,35 @@ class MainWindow(QMainWindow,SetActions):
         self.default_zoom = 100
         self.encoding = 'UTF-8'
         
+        self.setWindowIcon(QIcon('./image/notepad_icon.png'))
+        self.setWindowTitle(self.window_title)
+        self.set_config()
+        
         # selected color
         self.palette = QPalette()
         self.palette.setColor(QPalette.Highlight, QColor(0, 120, 215))
         self.palette.setColor(QPalette.HighlightedText, QColor(255, 255, 255))
     
     def set_ui(self):
-        self.setWindowIcon(QIcon('./image/notepad_icon.png'))
-        self.setWindowTitle(self.window_title)
-        self.set_geometry()
-        
         self.set_text_edit()
         self.set_menu()
         self.set_statusbar()
     
-    def set_geometry(self):
-        with open(str(os.path.join(CURRENT_PATH,'config.txt')),'r') as r:
-            try:
-                geometry = list(map(int,r.read().split(',')))
-                self.setGeometry(geometry[0],geometry[1],geometry[2],geometry[3])
-            except:
-                self.setGeometry(0,30,1280,720)
+    def set_config(self):
+        self.config = {'geometry':[],'find_keyword':''}
+        
+        with open(str(os.path.join(CURRENT_PATH,'config.json')),'r') as r:
+            config = json.load(r)
+        
+        if config['geometry']:
+            geometry = config['geometry']
+            self.setGeometry(geometry[0],geometry[1],geometry[2],geometry[3])
+            print(geometry)
+        else:
+            self.setGeometry(0,30,1280,720)
+        
+        if config['find_keyword']:
+            self.config['find_keyword'] = config['find_keyword']
     
     def set_text_edit(self):
         self.text_edit = QPlainTextEdit()
@@ -194,7 +202,7 @@ class MainWindow(QMainWindow,SetActions):
         self.bing_action.setShortcut('Ctrl+E')
         
         self.find_action = QAction('찾기(&F)...')
-        self.find_action.triggered.connect(self.test)
+        self.find_action.triggered.connect(self.find_keyword)
         
         self.find_next_action = QAction('다음 찾기(&N)')
         self.find_next_action.setShortcut('F3')
@@ -311,11 +319,7 @@ class MainWindow(QMainWindow,SetActions):
         self.encoding_label.setMinimumWidth(90)
         self.statusbar.addPermanentWidget(self.encoding_label)
     
-    def plus(self):
-        self.encoding_label.setText('t')
-    
     def set_cursor_position(self):
-        text = self.text_edit.toPlainText()
         cursor = self.text_edit.textCursor()
         cursor_position = cursor.blockNumber()+1,cursor.columnNumber()+1
         self.cursor_position_label.setText(f'Ln {cursor_position[0]}, Col {cursor_position[1]}')
@@ -332,18 +336,19 @@ class MainWindow(QMainWindow,SetActions):
         if self.modify:
             self.run_messagebox_button()
         
-        with open(str(os.path.join(CURRENT_PATH,'config.txt')),'w') as w:
-            w.write(f'{self.x()},{self.y()+30},{self.width()},{self.height()}')
-            w.close()
+        if self.find_window.close():
+            print(0)
+        
+        self.config['geometry'] = self.x(),self.y()+30,self.width(),self.height()
+        with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
+            json.dump(self.config,w,indent=4)
     
-    def test(self):
+    def find_keyword(self):
         # init
         cursor = self.text_edit.textCursor()
         selected_text = cursor.selectedText()
-        if selected_text:
-            print("선택된 텍스트: ", selected_text)
-        else:
-            print("선택된 텍스트가 없습니다.")
+            # with open(str(os.path.join(CURRENT_PATH,'config.json')),'r') as r:
+            #     self.keyword_to_find = json.load(r)['find_keyword']
         
         # ui
         self.find_window = QDialog(self)
@@ -363,7 +368,14 @@ class MainWindow(QMainWindow,SetActions):
         self.label = QLabel('찾을 내용 ')
         self.find_line_edit = QLineEdit()
         self.find_line_edit.setPalette(self.palette)
-        self.find_line_edit.setText(selected_text)
+        if selected_text:
+            print("선택된 텍스트: ", selected_text)
+            self.keyword_to_find = selected_text
+        else:
+            print("선택된 텍스트가 없습니다.")
+            self.keyword_to_find = self.config['find_keyword']
+            print(self.keyword_to_find)
+        self.find_line_edit.setText(self.keyword_to_find)
         self.find_line_edit.selectAll()
         
         self.find_next_button = QPushButton('다음 찾기(&F)')
@@ -371,21 +383,22 @@ class MainWindow(QMainWindow,SetActions):
             self.find_next_button.setEnabled(True)
         else:
             self.find_next_button.setEnabled(False)
+        
         self.find_cancel_button = QPushButton('취소')
-        self.find_cancel_button.clicked.connect(self.set_cursor_position)
+        self.find_cancel_button.clicked.connect(self.set_find_cancel_button)
         # self.find_cancel_button.clicked.connect(self.find_window.reject)
         
         self.checkbox1 = QCheckBox('대/소문자 구분(&C)')
         self.checkbox2 = QCheckBox('주위에 배치(&R)')
         
-        self.radiobox1 = QRadioButton('위로(&U)')
-        self.radiobox1.setMaximumWidth(60)
-        self.radiobox2 = QRadioButton('아래로(&D)')
-        self.radiobox2.setChecked(True)
+        self.radiobox_up = QRadioButton('위로(&U)')
+        self.radiobox_up.setMaximumWidth(60)
+        self.radiobox_down = QRadioButton('아래로(&D)')
+        self.radiobox_down.setChecked(True)
         
         # signal
         self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
-        self.find_next_button.clicked.connect(self.find_next)
+        self.find_next_button.clicked.connect(self.test)
         
         # add widget
         self.horizon_lineedit_layout.addWidget(self.label)
@@ -399,20 +412,56 @@ class MainWindow(QMainWindow,SetActions):
         self.vertical_checkbox_layout.addWidget(self.checkbox2)
         self.grid_layout.addLayout(self.vertical_checkbox_layout,2,0)
         
-        self.horizon_direction_layout.addWidget(self.radiobox1)
-        self.horizon_direction_layout.addWidget(self.radiobox2)
+        self.horizon_direction_layout.addWidget(self.radiobox_up)
+        self.horizon_direction_layout.addWidget(self.radiobox_down)
         self.direction_groupbox.setLayout(self.horizon_direction_layout)
         self.grid_layout.addWidget(self.direction_groupbox,1,1,2,1)
         
         self.setLayout(self.grid_layout)
+        # self.find_window.exec()
         self.find_window.show()
     
+    def set_find_cancel_button(self):
+        self.config['find_keyword'] = self.keyword_to_find
+        with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
+            json.dump(self.config,w,indent=4)
+        self.find_window.close()
+    
+    def test(self):
+        cursor = self.text_edit.textCursor()
+        cursor_position = cursor.position()
+        text = self.text_edit.toPlainText()
+        self.keyword_to_find = self.find_line_edit.text()
+        match_position = text.find(self.keyword_to_find,cursor_position)
+        
+        if match_position != -1:
+            if self.radiobox_down.isChecked():
+                cursor.setPosition(match_position,QTextCursor.MoveAnchor)
+                self.text_edit.setTextCursor(cursor)
+                cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,len(self.keyword_to_find))
+                self.text_edit.setTextCursor(cursor)
+                self.set_cursor_position()
+            elif self.radiobox_up.isChecked():
+                found = self.text_edit.document().find(self.keyword_to_find,cursor,QTextCursor.FindBackward)
+                if found:
+                    print(found)
+                # print('back')
+                # if cursor.movePosition(cursor.atStart()):
+                #     found = cursor.movePosition(cursor.NextWord, cursor.KeepAnchor, 1)
+                #     if found and self.keyword in cursor.selectedText():
+                #         print("샘플을 찾았습니다.")
+                #     else:
+                #         print("찾을 수 없습니다.")
+        else:
+            QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
+    
     def find_next(self):
-        keyword = self.find_line_edit.text()
-        cursor = self.text_edit.document().find(keyword)
-        if keyword:
+        self.keyword_to_find = self.find_line_edit.text()
+        cursor = self.text_edit.document().find(self.keyword_to_find)
+        cursor = self.text_edit.document().FindFlag()
+        if self.keyword_to_find:
             if cursor.isNull():
-                    QMessageBox.information(self, "Information", f"No result for {keyword}")
+                    QMessageBox.information(self, "Information", f"No result for {self.keyword_to_find}")
             else:
                 # 검색 결과가 있으면 해당 영역을 선택합니다.
                 self.text_edit.setTextCursor(cursor)

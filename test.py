@@ -1,17 +1,14 @@
-import PySide6.QtCore as QtCore
+import os,json
 
-file_path = "test2.txt"
-file = QtCore.QFile(file_path)
-if file.open(QtCore.QIODevice.ReadOnly | QtCore.QIODevice.Text):
-    stream = QtCore.QTextStream(file)
-    stream.setAutoDetectUnicode(True)  # 자동으로 인코딩 검사
-    text = stream.readAll()
-    file.close()
-    print(text)
-    if "\r\n" in text:
-        print("File EOL: Windows")
-    elif "\r" in text:
-        print("File EOL: Mac")
-    else:
-        print("File EOL: Unix")
-    file.close()
+CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
+
+config = {'geometry':[],'find_keyword':'안녕 '}
+config['geometry'] = 0,1,2,3
+
+with open(str(os.path.join(CURRENT_PATH,'test.json')),'w') as w:
+    json.dump(config,w,indent=4)
+
+with open(str(os.path.join(CURRENT_PATH,'test.json')),'r') as r:
+    keyword = json.load(r)['find_keyword']
+
+print(keyword)

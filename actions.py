@@ -218,8 +218,8 @@ class SetActions:
         self.copy_action.setEnabled(yes)
         self.delete_action.setEnabled(yes)
     
-    def line_edit_text_changer(self):
-        if self.line_edit.text():
+    def line_edit_text_changer(self,text):
+        if text:
             self.find_next_button.setEnabled(True)
         else:
             self.find_next_button.setEnabled(False)
