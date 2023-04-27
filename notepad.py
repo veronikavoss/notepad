@@ -45,20 +45,26 @@ class MainWindow(QMainWindow,SetActions):
         self.set_statusbar()
     
     def set_config(self):
-        self.config = {'geometry':[],'find_keyword':''}
+        self.config = {'geometry':[],'find_keyword':'','find_upndown':''}
         
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'r') as r:
             config = json.load(r)
         
+        for key in self.config.keys():
+            if key not in config:
+                config[key] = ''
+        
         if config['geometry']:
             geometry = config['geometry']
             self.setGeometry(geometry[0],geometry[1],geometry[2],geometry[3])
-            print(geometry)
         else:
             self.setGeometry(0,30,1280,720)
         
         if config['find_keyword']:
             self.config['find_keyword'] = config['find_keyword']
+        
+        self.config['find_upndown'] = config['find_upndown']
+        print(self.config)
     
     def set_text_edit(self):
         self.text_edit = QPlainTextEdit()
@@ -336,9 +342,6 @@ class MainWindow(QMainWindow,SetActions):
         if self.modify:
             self.run_messagebox_button()
         
-        if self.find_window.close():
-            print(0)
-        
         self.config['geometry'] = self.x(),self.y()+30,self.width(),self.height()
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
             json.dump(self.config,w,indent=4)
@@ -386,19 +389,22 @@ class MainWindow(QMainWindow,SetActions):
         
         self.find_cancel_button = QPushButton('취소')
         self.find_cancel_button.clicked.connect(self.set_find_cancel_button)
-        # self.find_cancel_button.clicked.connect(self.find_window.reject)
         
         self.checkbox1 = QCheckBox('대/소문자 구분(&C)')
         self.checkbox2 = QCheckBox('주위에 배치(&R)')
         
+        
         self.radiobox_up = QRadioButton('위로(&U)')
         self.radiobox_up.setMaximumWidth(60)
         self.radiobox_down = QRadioButton('아래로(&D)')
-        self.radiobox_down.setChecked(True)
+        if self.config['find_upndown'] == 'down':
+            self.radiobox_down.setChecked(True)
+        else:
+            self.radiobox_up.setChecked(True)
         
         # signal
         self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
-        self.find_next_button.clicked.connect(self.test)
+        self.find_next_button.clicked.connect(self.set_find_next_button)
         
         # add widget
         self.horizon_lineedit_layout.addWidget(self.label)
@@ -418,57 +424,47 @@ class MainWindow(QMainWindow,SetActions):
         self.grid_layout.addWidget(self.direction_groupbox,1,1,2,1)
         
         self.setLayout(self.grid_layout)
-        # self.find_window.exec()
+        
+        self.find_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.find_window.closeEvent = self.set_find_cancel_button
         self.find_window.show()
     
-    def set_find_cancel_button(self):
-        self.config['find_keyword'] = self.keyword_to_find
-        with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
-            json.dump(self.config,w,indent=4)
-        self.find_window.close()
-    
-    def test(self):
+    def set_find_next_button(self):
         cursor = self.text_edit.textCursor()
         cursor_position = cursor.position()
         text = self.text_edit.toPlainText()
         self.keyword_to_find = self.find_line_edit.text()
-        match_position = text.find(self.keyword_to_find,cursor_position)
         
-        if match_position != -1:
-            if self.radiobox_down.isChecked():
-                cursor.setPosition(match_position,QTextCursor.MoveAnchor)
+        if self.radiobox_down.isChecked():
+            match_position = text.find(self.keyword_to_find,cursor_position)
+            if match_position != -1:
+                print(match_position)
+                cursor.setPosition(match_position)
+                cursor.setPosition(match_position+len(self.keyword_to_find),QTextCursor.KeepAnchor)
                 self.text_edit.setTextCursor(cursor)
-                cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,len(self.keyword_to_find))
-                self.text_edit.setTextCursor(cursor)
-                self.set_cursor_position()
-            elif self.radiobox_up.isChecked():
-                found = self.text_edit.document().find(self.keyword_to_find,cursor,QTextCursor.FindBackward)
-                if found:
-                    print(found)
-                # print('back')
-                # if cursor.movePosition(cursor.atStart()):
-                #     found = cursor.movePosition(cursor.NextWord, cursor.KeepAnchor, 1)
-                #     if found and self.keyword in cursor.selectedText():
-                #         print("샘플을 찾았습니다.")
-                #     else:
-                #         print("찾을 수 없습니다.")
-        else:
-            QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
-    
-    def find_next(self):
-        self.keyword_to_find = self.find_line_edit.text()
-        cursor = self.text_edit.document().find(self.keyword_to_find)
-        cursor = self.text_edit.document().FindFlag()
-        if self.keyword_to_find:
-            if cursor.isNull():
-                    QMessageBox.information(self, "Information", f"No result for {self.keyword_to_find}")
             else:
-                # 검색 결과가 있으면 해당 영역을 선택합니다.
+                QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
+        elif self.radiobox_up.isChecked():
+            match_position = text.rfind(self.keyword_to_find,0,cursor_position-len(self.keyword_to_find))
+            if match_position != -1:
+                print(match_position)
+                cursor.setPosition(match_position)
+                cursor.setPosition(match_position+len(self.keyword_to_find),QTextCursor.KeepAnchor)
                 self.text_edit.setTextCursor(cursor)
-                # 검색된 영역을 스크롤합니다.
-                cursor.select(QTextCursor.WordUnderCursor)
-                self.text_edit.ensureCursorVisible()
+            else:
+                QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
 
+    def set_find_cancel_button(self,event):
+        self.config['find_keyword'] = self.keyword_to_find
+        if self.radiobox_down.isChecked():
+            self.config['find_upndown'] = 'down'
+        else:
+            self.config['find_upndown'] = 'up'
+        
+        with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
+            json.dump(self.config,w,indent=4)
+        self.find_window.close()
+    
 app = QApplication(sys.argv)
 window = MainWindow()
 app.exec()
