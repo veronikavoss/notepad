@@ -444,8 +444,13 @@ class MainWindow(QMainWindow,SetActions):
                 self.text_edit.setTextCursor(cursor)
             else:
                 QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
+        
         elif self.radiobox_up.isChecked():
-            match_position = text.rfind(self.keyword_to_find,0,cursor_position-len(self.keyword_to_find))
+            if cursor.selectedText() == self.keyword_to_find:
+                match_position = text.rfind(self.keyword_to_find,0,cursor_position-len(self.keyword_to_find))
+            else:
+                match_position = text.rfind(self.keyword_to_find,0,cursor_position)
+            
             if match_position != -1:
                 print(match_position)
                 cursor.setPosition(match_position)
