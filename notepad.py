@@ -390,7 +390,7 @@ class MainWindow(QMainWindow,SetActions):
         self.find_cancel_button = QPushButton('취소')
         self.find_cancel_button.clicked.connect(self.set_find_cancel_button)
         
-        self.checkbox1 = QCheckBox('대/소문자 구분(&C)')
+        self.case_sensitivity_checkbox = QCheckBox('대/소문자 구분(&C)')
         self.checkbox2 = QCheckBox('주위에 배치(&R)')
         
         
@@ -414,7 +414,7 @@ class MainWindow(QMainWindow,SetActions):
         self.grid_layout.addWidget(self.find_next_button,0,4)
         self.grid_layout.addWidget(self.find_cancel_button,1,4)
         
-        self.vertical_checkbox_layout.addWidget(self.checkbox1)
+        self.vertical_checkbox_layout.addWidget(self.case_sensitivity_checkbox)
         self.vertical_checkbox_layout.addWidget(self.checkbox2)
         self.grid_layout.addLayout(self.vertical_checkbox_layout,2,0)
         
@@ -429,7 +429,7 @@ class MainWindow(QMainWindow,SetActions):
         self.find_window.closeEvent = self.set_find_cancel_button
         self.find_window.show()
     
-    def set_find_next_button(self):
+    def set_find_next_button1(self):
         cursor = self.text_edit.textCursor()
         cursor_position = cursor.position()
         text = self.text_edit.toPlainText()
@@ -437,27 +437,49 @@ class MainWindow(QMainWindow,SetActions):
         
         if self.radiobox_down.isChecked():
             match_position = text.find(self.keyword_to_find,cursor_position)
-            if match_position != -1:
-                print(match_position)
-                cursor.setPosition(match_position)
-                cursor.setPosition(match_position+len(self.keyword_to_find),QTextCursor.KeepAnchor)
-                self.text_edit.setTextCursor(cursor)
-            else:
-                QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
         
         elif self.radiobox_up.isChecked():
             if cursor.selectedText() == self.keyword_to_find:
                 match_position = text.rfind(self.keyword_to_find,0,cursor_position-len(self.keyword_to_find))
             else:
                 match_position = text.rfind(self.keyword_to_find,0,cursor_position)
-            
-            if match_position != -1:
-                print(match_position)
-                cursor.setPosition(match_position)
-                cursor.setPosition(match_position+len(self.keyword_to_find),QTextCursor.KeepAnchor)
-                self.text_edit.setTextCursor(cursor)
+        
+        if match_position != -1:
+            cursor.setPosition(match_position)
+            cursor.setPosition(match_position+len(self.keyword_to_find),QTextCursor.KeepAnchor)
+            self.text_edit.setTextCursor(cursor)
+        else:
+            QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
+    
+    def set_find_next_button(self):
+        cursor = self.text_edit.textCursor()
+        cursor_position = cursor.position()
+        self.keyword_to_find = self.find_line_edit.text()
+        
+        if self.radiobox_down.isChecked():
+            if self.case_sensitivity_checkbox.isChecked():
+                flag = QTextDocument.FindCaseSensitively
+                cursor = self.text_edit.document().find(self.keyword_to_find,cursor_position,flag)
             else:
-                QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
+                cursor = self.text_edit.document().find(self.keyword_to_find,cursor_position)
+        else:
+            if cursor.selectedText():
+                start_position = cursor_position - len(self.keyword_to_find)
+            else:
+                start_position = cursor_position
+            
+            if self.case_sensitivity_checkbox.isChecked():
+                flag = QTextDocument.FindBackward | QTextDocument.FindCaseSensitively
+                cursor = self.text_edit.document().find(self.keyword_to_find,start_position,flag)
+            else:
+                flag = QTextDocument.FindBackward
+                cursor = self.text_edit.document().find(self.keyword_to_find,start_position,flag)
+        
+        if not cursor.isNull():
+            self.text_edit.setTextCursor(cursor)
+        else:
+            QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
+
 
     def set_find_cancel_button(self,event):
         self.config['find_keyword'] = self.keyword_to_find
