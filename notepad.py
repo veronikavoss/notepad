@@ -528,6 +528,7 @@ class MainWindow(QMainWindow,SetActions):
         self.find_window.close()
     
     def set_find_next_action(self):
+        self.config['find_upndown'] = 'down'
         if self.find_next_action_isrun:
             self.set_find_next_button()
         else:
