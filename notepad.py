@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QApplication,QMainWindow,QGridLayout,QFrame,
     QPlainTextEdit,QMenuBar,QMenu,QStatusBar,
     QDialog,QLabel,QLineEdit,QPushButton,QHBoxLayout,QVBoxLayout,QCheckBox,QRadioButton,QGroupBox,QMessageBox)
-from PySide6.QtGui import QAction,QIcon,QFont,QTextCursor,QColor,QPalette,QTextDocument
+from PySide6.QtGui import QAction,QIcon,QFont,QColor,QPalette,QTextDocument
 from PySide6.QtCore import Qt
 
 from actions import SetActions
@@ -235,6 +235,7 @@ class MainWindow(QMainWindow,SetActions):
         
         self.find_previous_action = QAction('이전 찾기(&V)')
         self.find_previous_action.setShortcut('Shift+F3')
+        self.find_previous_action.triggered.connect(self.set_find_previous_action)
         
         self.replace_action = QAction('바꾸기(&R)...')
         self.replace_action.setShortcut('Ctrl+H')
@@ -529,6 +530,13 @@ class MainWindow(QMainWindow,SetActions):
     
     def set_find_next_action(self):
         self.config['find_upndown'] = 'down'
+        if self.find_next_action_isrun:
+            self.set_find_next_button()
+        else:
+            self.find_keyword()
+    
+    def set_find_previous_action(self):
+        self.config['find_upndown'] = 'up'
         if self.find_next_action_isrun:
             self.set_find_next_button()
         else:

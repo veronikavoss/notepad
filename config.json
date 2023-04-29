@@ -6,7 +6,7 @@
         720
     ],
     "find_keyword": "\uc548\ub155",
-    "find_upndown": "down",
+    "find_upndown": "up",
     "case_sensitivity": "no",
-    "wrap_around": "no"
+    "wrap_around": "yes"
 }
