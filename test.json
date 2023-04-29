@@ -1,9 +1,7 @@
 {
-    "geometry": [
-        0,
-        1,
-        2,
-        3
-    ],
-    "find_keyword": "\uc548\ub155 "
+    "geometry": [],
+    "find_keyword": "",
+    "find_upndown": "",
+    "case_sensitivity": "",
+    "wrap_around": ""
 }

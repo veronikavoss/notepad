@@ -1,6 +1,6 @@
 import sys,os,json
 from PySide6.QtWidgets import (
-    QApplication,QMainWindow,QWidget,QGridLayout,QFrame,
+    QApplication,QMainWindow,QGridLayout,QFrame,
     QPlainTextEdit,QMenuBar,QMenu,QStatusBar,
     QDialog,QLabel,QLineEdit,QPushButton,QHBoxLayout,QVBoxLayout,QCheckBox,QRadioButton,QGroupBox,QMessageBox)
 from PySide6.QtGui import QAction,QIcon,QFont,QTextCursor,QColor,QPalette,QTextDocument
@@ -45,25 +45,43 @@ class MainWindow(QMainWindow,SetActions):
         self.set_statusbar()
     
     def set_config(self):
-        self.config = {'geometry':[],'find_keyword':'','find_upndown':''}
+        self.config = {'geometry':[],'find_keyword':'','find_upndown':'','case_sensitivity':'','wrap_around':''}
+        config_json = None
         
-        with open(str(os.path.join(CURRENT_PATH,'config.json')),'r') as r:
-            config = json.load(r)
+        try:
+            with open(str(os.path.join(CURRENT_PATH,'config.json')),'r') as r:
+                config_json = json.load(r)
+        except FileNotFoundError:
+            with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
+                json.dump(self.config,w,indent=4)
         
         for key in self.config.keys():
-            if key not in config:
-                config[key] = ''
+            if key not in config_json:
+                config_json[key] = ''
         
-        if config['geometry']:
-            geometry = config['geometry']
+        if config_json['geometry']:
+            self.config['geometry'] = config_json['geometry']
+            geometry = self.config['geometry']
             self.setGeometry(geometry[0],geometry[1],geometry[2],geometry[3])
         else:
             self.setGeometry(0,30,1280,720)
         
-        if config['find_keyword']:
-            self.config['find_keyword'] = config['find_keyword']
+        self.config['find_keyword'] = config_json['find_keyword']
         
-        self.config['find_upndown'] = config['find_upndown']
+        if self.config['find_upndown']:
+            self.config['find_upndown'] = config_json['find_upndown']
+        else:
+            self.config['find_upndown'] = 'down'
+        
+        if self.config['case_sensitivity']:
+            self.config['case_sensitivity'] = config_json['case_sensitivity']
+        else:
+            self.config['case_sensitivity'] = 'no'
+        
+        if self.config['wrap_around']:
+            self.config['wrap_around'] = config_json['wrap_around']
+        else:
+            self.config['wrap_around'] = 'no'
         print(self.config)
     
     def set_text_edit(self):
@@ -350,8 +368,6 @@ class MainWindow(QMainWindow,SetActions):
         # init
         cursor = self.text_edit.textCursor()
         selected_text = cursor.selectedText()
-            # with open(str(os.path.join(CURRENT_PATH,'config.json')),'r') as r:
-            #     self.keyword_to_find = json.load(r)['find_keyword']
         
         # ui
         self.find_window = QDialog(self)
@@ -390,10 +406,6 @@ class MainWindow(QMainWindow,SetActions):
         self.find_cancel_button = QPushButton('취소')
         self.find_cancel_button.clicked.connect(self.set_find_cancel_button)
         
-        self.case_sensitivity_checkbox = QCheckBox('대/소문자 구분(&C)')
-        self.checkbox2 = QCheckBox('주위에 배치(&R)')
-        
-        
         self.radiobox_up = QRadioButton('위로(&U)')
         self.radiobox_up.setMaximumWidth(60)
         self.radiobox_down = QRadioButton('아래로(&D)')
@@ -401,6 +413,9 @@ class MainWindow(QMainWindow,SetActions):
             self.radiobox_down.setChecked(True)
         else:
             self.radiobox_up.setChecked(True)
+        
+        self.case_sensitivity_checkbox = QCheckBox('대/소문자 구분(&C)')
+        self.wrap_around_checkbox = QCheckBox('주위에 배치(&R)')
         
         # signal
         self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
@@ -415,7 +430,7 @@ class MainWindow(QMainWindow,SetActions):
         self.grid_layout.addWidget(self.find_cancel_button,1,4)
         
         self.vertical_checkbox_layout.addWidget(self.case_sensitivity_checkbox)
-        self.vertical_checkbox_layout.addWidget(self.checkbox2)
+        self.vertical_checkbox_layout.addWidget(self.wrap_around_checkbox)
         self.grid_layout.addLayout(self.vertical_checkbox_layout,2,0)
         
         self.horizon_direction_layout.addWidget(self.radiobox_up)
@@ -452,6 +467,7 @@ class MainWindow(QMainWindow,SetActions):
             QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
     
     def set_find_next_button(self):
+        document = self.text_edit.document()
         cursor = self.text_edit.textCursor()
         cursor_position = cursor.position()
         self.keyword_to_find = self.find_line_edit.text()
@@ -459,9 +475,9 @@ class MainWindow(QMainWindow,SetActions):
         if self.radiobox_down.isChecked():
             if self.case_sensitivity_checkbox.isChecked():
                 flag = QTextDocument.FindCaseSensitively
-                cursor = self.text_edit.document().find(self.keyword_to_find,cursor_position,flag)
+                cursor = document.find(self.keyword_to_find,cursor_position,flag)
             else:
-                cursor = self.text_edit.document().find(self.keyword_to_find,cursor_position)
+                cursor = document.find(self.keyword_to_find,cursor_position)
         else:
             if cursor.selectedText():
                 start_position = cursor_position - len(self.keyword_to_find)
@@ -470,23 +486,52 @@ class MainWindow(QMainWindow,SetActions):
             
             if self.case_sensitivity_checkbox.isChecked():
                 flag = QTextDocument.FindBackward | QTextDocument.FindCaseSensitively
-                cursor = self.text_edit.document().find(self.keyword_to_find,start_position,flag)
+                cursor = document.find(self.keyword_to_find,start_position,flag)
             else:
                 flag = QTextDocument.FindBackward
-                cursor = self.text_edit.document().find(self.keyword_to_find,start_position,flag)
+                cursor = document.find(self.keyword_to_find,start_position,flag)
         
         if not cursor.isNull():
             self.text_edit.setTextCursor(cursor)
         else:
-            QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
-
-
+            if self.wrap_around_checkbox.isChecked():
+                if self.radiobox_down.isChecked():
+                    if self.case_sensitivity_checkbox.isChecked():
+                        flag = QTextDocument.FindCaseSensitively
+                        cursor = document.find(self.keyword_to_find,0,flag)
+                    else:
+                        cursor = document.find(self.keyword_to_find,0)
+                else:
+                    end_index = document.characterCount() - 1
+                    if end_index != -1:
+                        if self.case_sensitivity_checkbox.isChecked():
+                            flag = QTextDocument.FindBackward | QTextDocument.FindCaseSensitively
+                            cursor = document.find(self.keyword_to_find,end_index,flag)
+                        else:
+                            flag = QTextDocument.FindBackward
+                    cursor = document.find(self.keyword_to_find,end_index,flag)
+                
+                self.text_edit.setTextCursor(cursor)
+            else:
+                QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
+    
     def set_find_cancel_button(self,event):
         self.config['find_keyword'] = self.keyword_to_find
+        
         if self.radiobox_down.isChecked():
             self.config['find_upndown'] = 'down'
         else:
             self.config['find_upndown'] = 'up'
+        
+        if self.case_sensitivity_checkbox.isChecked():
+            self.config['case_sensitivity'] = 'yes'
+        else:
+            self.config['case_sensitivity'] = 'no'
+        
+        if self.wrap_around_checkbox.isChecked():
+            self.config['wrap_around'] = 'yes'
+        else:
+            self.config['wrap_around'] = 'no'
         
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
             json.dump(self.config,w,indent=4)

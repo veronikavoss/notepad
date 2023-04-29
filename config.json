@@ -1,10 +1,12 @@
 {
     "geometry": [
-        236,
-        162,
+        0,
+        30,
         1280,
         720
     ],
-    "find_keyword": "a",
-    "find_upndown": "up"
+    "find_keyword": "",
+    "find_upndown": "down",
+    "case_sensitivity": "no",
+    "wrap_around": "no"
 }
