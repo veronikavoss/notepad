@@ -1,11 +1,11 @@
 {
     "geometry": [
-        0,
-        30,
+        328,
+        183,
         1280,
         720
     ],
-    "find_keyword": "",
+    "find_keyword": "t",
     "find_upndown": "down",
     "case_sensitivity": "no",
     "wrap_around": "no"

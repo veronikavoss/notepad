@@ -29,6 +29,7 @@ class MainWindow(QMainWindow,SetActions):
         self.closed = False
         self.default_zoom = 100
         self.encoding = 'UTF-8'
+        self.find_next_action_isrun = False
         
         self.setWindowIcon(QIcon('./image/notepad_icon.png'))
         self.setWindowTitle(self.window_title)
@@ -68,17 +69,17 @@ class MainWindow(QMainWindow,SetActions):
         
         self.config['find_keyword'] = config_json['find_keyword']
         
-        if self.config['find_upndown']:
+        if config_json['find_upndown']:
             self.config['find_upndown'] = config_json['find_upndown']
         else:
             self.config['find_upndown'] = 'down'
         
-        if self.config['case_sensitivity']:
+        if config_json['case_sensitivity']:
             self.config['case_sensitivity'] = config_json['case_sensitivity']
         else:
             self.config['case_sensitivity'] = 'no'
         
-        if self.config['wrap_around']:
+        if config_json['wrap_around']:
             self.config['wrap_around'] = config_json['wrap_around']
         else:
             self.config['wrap_around'] = 'no'
@@ -230,6 +231,7 @@ class MainWindow(QMainWindow,SetActions):
         
         self.find_next_action = QAction('다음 찾기(&N)')
         self.find_next_action.setShortcut('F3')
+        self.find_next_action.triggered.connect(self.set_find_next_action)
         
         self.find_previous_action = QAction('이전 찾기(&V)')
         self.find_previous_action.setShortcut('Shift+F3')
@@ -366,6 +368,7 @@ class MainWindow(QMainWindow,SetActions):
     
     def find_keyword(self):
         # init
+        self.find_next_action_isrun = True
         cursor = self.text_edit.textCursor()
         selected_text = cursor.selectedText()
         
@@ -388,12 +391,9 @@ class MainWindow(QMainWindow,SetActions):
         self.find_line_edit = QLineEdit()
         self.find_line_edit.setPalette(self.palette)
         if selected_text:
-            print("선택된 텍스트: ", selected_text)
             self.keyword_to_find = selected_text
         else:
-            print("선택된 텍스트가 없습니다.")
             self.keyword_to_find = self.config['find_keyword']
-            print(self.keyword_to_find)
         self.find_line_edit.setText(self.keyword_to_find)
         self.find_line_edit.selectAll()
         
@@ -415,7 +415,16 @@ class MainWindow(QMainWindow,SetActions):
             self.radiobox_up.setChecked(True)
         
         self.case_sensitivity_checkbox = QCheckBox('대/소문자 구분(&C)')
+        if self.config['case_sensitivity'] == 'no':
+            self.case_sensitivity_checkbox.setChecked(False)
+        else:
+            self.case_sensitivity_checkbox.setChecked(True)
+        
         self.wrap_around_checkbox = QCheckBox('주위에 배치(&R)')
+        if self.config['wrap_around'] == 'no':
+            self.wrap_around_checkbox.setChecked(False)
+        else:
+            self.wrap_around_checkbox.setChecked(True)
         
         # signal
         self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
@@ -440,31 +449,9 @@ class MainWindow(QMainWindow,SetActions):
         
         self.setLayout(self.grid_layout)
         
-        self.find_window.setAttribute(Qt.WA_DeleteOnClose)
+        # self.find_window.setAttribute(Qt.WA_DeleteOnClose)
         self.find_window.closeEvent = self.set_find_cancel_button
         self.find_window.show()
-    
-    def set_find_next_button1(self):
-        cursor = self.text_edit.textCursor()
-        cursor_position = cursor.position()
-        text = self.text_edit.toPlainText()
-        self.keyword_to_find = self.find_line_edit.text()
-        
-        if self.radiobox_down.isChecked():
-            match_position = text.find(self.keyword_to_find,cursor_position)
-        
-        elif self.radiobox_up.isChecked():
-            if cursor.selectedText() == self.keyword_to_find:
-                match_position = text.rfind(self.keyword_to_find,0,cursor_position-len(self.keyword_to_find))
-            else:
-                match_position = text.rfind(self.keyword_to_find,0,cursor_position)
-        
-        if match_position != -1:
-            cursor.setPosition(match_position)
-            cursor.setPosition(match_position+len(self.keyword_to_find),QTextCursor.KeepAnchor)
-            self.text_edit.setTextCursor(cursor)
-        else:
-            QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
     
     def set_find_next_button(self):
         document = self.text_edit.document()
@@ -516,7 +503,9 @@ class MainWindow(QMainWindow,SetActions):
                 QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
     
     def set_find_cancel_button(self,event):
-        self.config['find_keyword'] = self.keyword_to_find
+        self.config['find_keyword'] = self.find_line_edit.text()
+        if not self.find_line_edit.text():
+            self.find_next_action_isrun = False
         
         if self.radiobox_down.isChecked():
             self.config['find_upndown'] = 'down'
@@ -535,8 +524,15 @@ class MainWindow(QMainWindow,SetActions):
         
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
             json.dump(self.config,w,indent=4)
+        
         self.find_window.close()
     
+    def set_find_next_action(self):
+        if self.find_next_action_isrun:
+            self.set_find_next_button()
+        else:
+            self.find_keyword()
+
 app = QApplication(sys.argv)
 window = MainWindow()
 app.exec()
