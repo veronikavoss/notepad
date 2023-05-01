@@ -1,12 +1,13 @@
 {
     "geometry": [
-        328,
-        183,
+        0,
+        30,
         1280,
         720
     ],
-    "find_keyword": "\uc548\ub155",
-    "find_upndown": "up",
+    "find_keyword": "1",
+    "replace_keyword": "",
+    "find_upndown": "down",
     "case_sensitivity": "no",
-    "wrap_around": "yes"
+    "wrap_around": "no"
 }

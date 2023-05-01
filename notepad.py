@@ -30,6 +30,7 @@ class MainWindow(QMainWindow,SetActions):
         self.default_zoom = 100
         self.encoding = 'UTF-8'
         self.find_next_action_isrun = False
+        self.find_status = ''
         
         self.setWindowIcon(QIcon('./image/notepad_icon.png'))
         self.setWindowTitle(self.window_title)
@@ -46,8 +47,14 @@ class MainWindow(QMainWindow,SetActions):
         self.set_statusbar()
     
     def set_config(self):
-        self.config = {'geometry':[],'find_keyword':'','find_upndown':'','case_sensitivity':'','wrap_around':''}
         config_json = None
+        self.config = {
+            'geometry':[],
+            'find_keyword':'',
+            'replace_keyword':'',
+            'find_upndown':'',
+            'case_sensitivity':'',
+            'wrap_around':''}
         
         try:
             with open(str(os.path.join(CURRENT_PATH,'config.json')),'r') as r:
@@ -55,14 +62,14 @@ class MainWindow(QMainWindow,SetActions):
         except FileNotFoundError:
             with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
                 json.dump(self.config,w,indent=4)
-        
-        for key in self.config.keys():
-            if key not in config_json:
-                config_json[key] = ''
+                config_json = self.config
+        else:
+            for key in self.config.keys():
+                if key not in config_json:
+                    config_json[key] = ''
         
         if config_json['geometry']:
-            self.config['geometry'] = config_json['geometry']
-            geometry = self.config['geometry']
+            geometry = config_json['geometry']
             self.setGeometry(geometry[0],geometry[1],geometry[2],geometry[3])
         else:
             self.setGeometry(0,30,1280,720)
@@ -227,7 +234,7 @@ class MainWindow(QMainWindow,SetActions):
         self.bing_action.setShortcut('Ctrl+E')
         
         self.find_action = QAction('찾기(&F)...')
-        self.find_action.triggered.connect(self.find_keyword)
+        self.find_action.triggered.connect(self.set_find_action)
         
         self.find_next_action = QAction('다음 찾기(&N)')
         self.find_next_action.setShortcut('F3')
@@ -239,6 +246,7 @@ class MainWindow(QMainWindow,SetActions):
         
         self.replace_action = QAction('바꾸기(&R)...')
         self.replace_action.setShortcut('Ctrl+H')
+        self.replace_action.triggered.connect(self.set_replace_action)
         
         self.go_to_action = QAction('이동(&G)...')
         self.go_to_action.setShortcut('Ctrl+G')
@@ -367,8 +375,9 @@ class MainWindow(QMainWindow,SetActions):
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
             json.dump(self.config,w,indent=4)
     
-    def find_keyword(self):
+    def set_find_action(self):
         # init
+        self.find_status = 'find'
         self.find_next_action_isrun = True
         cursor = self.text_edit.textCursor()
         selected_text = cursor.selectedText()
@@ -379,16 +388,16 @@ class MainWindow(QMainWindow,SetActions):
         self.find_window.setFixedSize(392,156)
         
         # layout
-        self.grid_layout = QGridLayout(self.find_window)
-        self.horizon_lineedit_layout = QHBoxLayout()
-        self.vertical_button_layout = QVBoxLayout()
-        self.vertical_checkbox_layout = QVBoxLayout()
-        self.direction_groupbox = QGroupBox('방향')
-        self.direction_groupbox.setMaximumHeight(60)
-        self.horizon_direction_layout = QHBoxLayout()
+        grid_layout = QGridLayout(self.find_window)
+        horizon_lineedit_layout = QHBoxLayout()
+        vertical_button_layout = QVBoxLayout()
+        vertical_checkbox_layout = QVBoxLayout()
+        direction_groupbox = QGroupBox('방향')
+        direction_groupbox.setMaximumHeight(60)
+        horizon_direction_layout = QHBoxLayout()
         
         # widget
-        self.label = QLabel('찾을 내용 ')
+        label = QLabel('찾을 내용 ')
         self.find_line_edit = QLineEdit()
         self.find_line_edit.setPalette(self.palette)
         if selected_text:
@@ -404,8 +413,8 @@ class MainWindow(QMainWindow,SetActions):
         else:
             self.find_next_button.setEnabled(False)
         
-        self.find_cancel_button = QPushButton('취소')
-        self.find_cancel_button.clicked.connect(self.set_find_cancel_button)
+        find_cancel_button = QPushButton('취소')
+        find_cancel_button.clicked.connect(self.set_find_cancel_button)
         
         self.radiobox_up = QRadioButton('위로(&U)')
         self.radiobox_up.setMaximumWidth(60)
@@ -432,23 +441,23 @@ class MainWindow(QMainWindow,SetActions):
         self.find_next_button.clicked.connect(self.set_find_next_button)
         
         # add widget
-        self.horizon_lineedit_layout.addWidget(self.label)
-        self.horizon_lineedit_layout.addWidget(self.find_line_edit)
-        self.grid_layout.addLayout(self.horizon_lineedit_layout,0,0,1,3)
+        horizon_lineedit_layout.addWidget(label)
+        horizon_lineedit_layout.addWidget(self.find_line_edit)
+        grid_layout.addLayout(horizon_lineedit_layout,0,0,1,3)
         
-        self.grid_layout.addWidget(self.find_next_button,0,4)
-        self.grid_layout.addWidget(self.find_cancel_button,1,4)
+        grid_layout.addWidget(self.find_next_button,0,4)
+        grid_layout.addWidget(find_cancel_button,1,4)
         
-        self.vertical_checkbox_layout.addWidget(self.case_sensitivity_checkbox)
-        self.vertical_checkbox_layout.addWidget(self.wrap_around_checkbox)
-        self.grid_layout.addLayout(self.vertical_checkbox_layout,2,0)
+        vertical_checkbox_layout.addWidget(self.case_sensitivity_checkbox)
+        vertical_checkbox_layout.addWidget(self.wrap_around_checkbox)
+        grid_layout.addLayout(vertical_checkbox_layout,2,0)
         
-        self.horizon_direction_layout.addWidget(self.radiobox_up)
-        self.horizon_direction_layout.addWidget(self.radiobox_down)
-        self.direction_groupbox.setLayout(self.horizon_direction_layout)
-        self.grid_layout.addWidget(self.direction_groupbox,1,1,2,1)
+        horizon_direction_layout.addWidget(self.radiobox_up)
+        horizon_direction_layout.addWidget(self.radiobox_down)
+        direction_groupbox.setLayout(horizon_direction_layout)
+        grid_layout.addWidget(direction_groupbox,1,1,2,1)
         
-        self.setLayout(self.grid_layout)
+        # self.find_window.setLayout(grid_layout)
         
         # self.find_window.setAttribute(Qt.WA_DeleteOnClose)
         self.find_window.closeEvent = self.set_find_cancel_button
@@ -503,15 +512,117 @@ class MainWindow(QMainWindow,SetActions):
             else:
                 QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
     
+    def set_find_next_action(self):
+        self.config['find_upndown'] = 'down'
+        if self.find_next_action_isrun:
+            self.set_find_next_button()
+        else:
+            self.set_find_action()
+    
+    def set_find_previous_action(self):
+        self.config['find_upndown'] = 'up'
+        if self.find_next_action_isrun:
+            self.set_find_next_button()
+        else:
+            self.set_find_action()
+    
+    def set_replace_action(self):
+        # init
+        self.find_status = 'replace'
+        self.find_next_action_isrun = True
+        cursor = self.text_edit.textCursor()
+        selected_text = cursor.selectedText()
+        
+        # ui
+        self.replace_window = QDialog(self)
+        self.replace_window.setWindowTitle('바꾸기')
+        self.replace_window.setFixedSize(388,198)
+        
+        # layout
+        grid_layout = QGridLayout(self.replace_window)
+        horizon_find_lineedit_layout = QHBoxLayout()
+        horizon_replace_lineedit_layout = QHBoxLayout()
+        vertical_button_layout = QVBoxLayout()
+        vertical_checkbox_layout = QVBoxLayout()
+        
+        # widget
+        find_label = QLabel('찾을 내용(N):')
+        self.find_line_edit = QLineEdit()
+        self.find_line_edit.setPalette(self.palette)
+        if selected_text:
+            self.keyword_to_find = selected_text
+        else:
+            self.keyword_to_find = self.config['find_keyword']
+        self.find_line_edit.setText(self.keyword_to_find)
+        self.find_line_edit.selectAll()
+        
+        replace_label = QLabel('바꿀 내용(P):')
+        self.replace_line_edit = QLineEdit()
+        self.replace_line_edit.setPalette(self.palette)
+        self.keyword_to_replace = self.config['replace_keyword']
+        self.replace_line_edit.setText(self.keyword_to_replace)
+        
+        self.find_next_button = QPushButton('다음 찾기(&F)')
+        if self.find_line_edit.text():
+            self.find_next_button.setEnabled(True)
+        else:
+            self.find_next_button.setEnabled(False)
+        
+        self.replace_button = QPushButton('바꾸기(&R)')
+        
+        self.all_replace_button = QPushButton('모두 바꾸기(&A)')
+        
+        find_cancel_button = QPushButton('취소')
+        find_cancel_button.clicked.connect(self.set_find_cancel_button)
+        
+        self.case_sensitivity_checkbox = QCheckBox('대/소문자 구분(&C)')
+        if self.config['case_sensitivity'] == 'no':
+            self.case_sensitivity_checkbox.setChecked(False)
+        else:
+            self.case_sensitivity_checkbox.setChecked(True)
+        
+        self.wrap_around_checkbox = QCheckBox('주위에 배치(&R)')
+        if self.config['wrap_around'] == 'no':
+            self.wrap_around_checkbox.setChecked(False)
+        else:
+            self.wrap_around_checkbox.setChecked(True)
+        
+        # signal
+        self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
+        self.find_next_button.clicked.connect(self.set_find_next_button)
+        
+        # add widget
+        grid_layout.addWidget(find_label,0,0)
+        grid_layout.addWidget(self.find_line_edit,0,1,1,3)
+        grid_layout.addWidget(replace_label,1,0)
+        grid_layout.addWidget(self.replace_line_edit,1,1,1,3)
+        
+        grid_layout.addWidget(self.find_next_button,0,4)
+        grid_layout.addWidget(self.replace_button,1,4)
+        grid_layout.addWidget(self.all_replace_button,2,4)
+        grid_layout.addWidget(find_cancel_button,3,4)
+        
+        grid_layout.addWidget(self.case_sensitivity_checkbox,3,0,1,2)
+        grid_layout.addWidget(self.wrap_around_checkbox,4,0,1,2)
+        
+        # grid_layout.addWidget(QWidget(self.replace_window),4,2,1,1)
+        # grid_layout.addWidget(QWidget(self.replace_window),4,3,1,1)
+        # grid_layout.addWidget(QWidget(self.replace_window),4,4,1,1)
+        
+        # self.replace_window.setAttribute(Qt.WA_DeleteOnClose)
+        self.replace_window.closeEvent = self.set_find_cancel_button
+        self.replace_window.show()
+    
     def set_find_cancel_button(self,event):
         self.config['find_keyword'] = self.find_line_edit.text()
         if not self.find_line_edit.text():
             self.find_next_action_isrun = False
         
-        if self.radiobox_down.isChecked():
-            self.config['find_upndown'] = 'down'
-        else:
-            self.config['find_upndown'] = 'up'
+        if self.find_status == 'find':
+            if self.radiobox_down.isChecked():
+                self.config['find_upndown'] = 'down'
+            else:
+                self.config['find_upndown'] = 'up'
         
         if self.case_sensitivity_checkbox.isChecked():
             self.config['case_sensitivity'] = 'yes'
@@ -526,22 +637,11 @@ class MainWindow(QMainWindow,SetActions):
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
             json.dump(self.config,w,indent=4)
         
-        self.find_window.close()
+        if self.find_status == 'find':
+            self.find_window.close()
+        elif self.find_status == 'replace':
+            self.replace_window.close()
     
-    def set_find_next_action(self):
-        self.config['find_upndown'] = 'down'
-        if self.find_next_action_isrun:
-            self.set_find_next_button()
-        else:
-            self.find_keyword()
-    
-    def set_find_previous_action(self):
-        self.config['find_upndown'] = 'up'
-        if self.find_next_action_isrun:
-            self.set_find_next_button()
-        else:
-            self.find_keyword()
-
 app = QApplication(sys.argv)
 window = MainWindow()
 app.exec()
