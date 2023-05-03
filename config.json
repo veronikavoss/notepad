@@ -1,13 +1,13 @@
 {
     "geometry": [
-        0,
-        30,
+        739,
+        135,
         1280,
         720
     ],
-    "find_keyword": "1",
-    "replace_keyword": "",
-    "find_upndown": "down",
-    "case_sensitivity": "no",
-    "wrap_around": "no"
+    "find_keyword": "a",
+    "replace_keyword": "-",
+    "find_upndown": "up",
+    "case_sensitivity": "yes",
+    "wrap_around": "yes"
 }

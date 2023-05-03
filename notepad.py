@@ -75,6 +75,7 @@ class MainWindow(QMainWindow,SetActions):
             self.setGeometry(0,30,1280,720)
         
         self.config['find_keyword'] = config_json['find_keyword']
+        self.config['replace_keyword'] = config_json['replace_keyword']
         
         if config_json['find_upndown']:
             self.config['find_upndown'] = config_json['find_upndown']
@@ -406,12 +407,14 @@ class MainWindow(QMainWindow,SetActions):
             self.keyword_to_find = self.config['find_keyword']
         self.find_line_edit.setText(self.keyword_to_find)
         self.find_line_edit.selectAll()
+        self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
         
         self.find_next_button = QPushButton('다음 찾기(&F)')
         if self.find_line_edit.text():
             self.find_next_button.setEnabled(True)
         else:
             self.find_next_button.setEnabled(False)
+        self.find_next_button.clicked.connect(self.set_find_next_button)
         
         find_cancel_button = QPushButton('취소')
         find_cancel_button.clicked.connect(self.set_find_cancel_button)
@@ -436,10 +439,6 @@ class MainWindow(QMainWindow,SetActions):
         else:
             self.wrap_around_checkbox.setChecked(True)
         
-        # signal
-        self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
-        self.find_next_button.clicked.connect(self.set_find_next_button)
-        
         # add widget
         horizon_lineedit_layout.addWidget(label)
         horizon_lineedit_layout.addWidget(self.find_line_edit)
@@ -463,30 +462,36 @@ class MainWindow(QMainWindow,SetActions):
         self.find_window.closeEvent = self.set_find_cancel_button
         self.find_window.show()
     
-    def set_find_next_button(self):
+    def set_find_next_button(self,replace=None):
         document = self.text_edit.document()
         cursor = self.text_edit.textCursor()
         cursor_position = cursor.position()
         self.keyword_to_find = self.find_line_edit.text()
         
+        if self.find_status == 'find':
+            self.when_find(document,cursor,cursor_position,self.keyword_to_find)
+        elif self.find_status == 'replace':
+            self.when_replace(document,cursor,cursor_position,self.keyword_to_find,replace)
+    
+    def when_find(self,document,cursor,cursor_position,keyword_to_find):
         if self.radiobox_down.isChecked():
             if self.case_sensitivity_checkbox.isChecked():
                 flag = QTextDocument.FindCaseSensitively
-                cursor = document.find(self.keyword_to_find,cursor_position,flag)
+                cursor = document.find(keyword_to_find,cursor_position,flag)
             else:
-                cursor = document.find(self.keyword_to_find,cursor_position)
+                cursor = document.find(keyword_to_find,cursor_position)
         else:
             if cursor.selectedText():
-                start_position = cursor_position - len(self.keyword_to_find)
+                start_position = cursor_position - len(keyword_to_find)
             else:
                 start_position = cursor_position
             
             if self.case_sensitivity_checkbox.isChecked():
                 flag = QTextDocument.FindBackward | QTextDocument.FindCaseSensitively
-                cursor = document.find(self.keyword_to_find,start_position,flag)
+                cursor = document.find(keyword_to_find,start_position,flag)
             else:
                 flag = QTextDocument.FindBackward
-                cursor = document.find(self.keyword_to_find,start_position,flag)
+                cursor = document.find(keyword_to_find,start_position,flag)
         
         if not cursor.isNull():
             self.text_edit.setTextCursor(cursor)
@@ -495,22 +500,57 @@ class MainWindow(QMainWindow,SetActions):
                 if self.radiobox_down.isChecked():
                     if self.case_sensitivity_checkbox.isChecked():
                         flag = QTextDocument.FindCaseSensitively
-                        cursor = document.find(self.keyword_to_find,0,flag)
+                        cursor = document.find(keyword_to_find,0,flag)
                     else:
-                        cursor = document.find(self.keyword_to_find,0)
+                        cursor = document.find(keyword_to_find,0)
                 else:
                     end_index = document.characterCount() - 1
                     if end_index != -1:
                         if self.case_sensitivity_checkbox.isChecked():
                             flag = QTextDocument.FindBackward | QTextDocument.FindCaseSensitively
-                            cursor = document.find(self.keyword_to_find,end_index,flag)
+                            cursor = document.find(keyword_to_find,end_index,flag)
                         else:
                             flag = QTextDocument.FindBackward
-                    cursor = document.find(self.keyword_to_find,end_index,flag)
+                    cursor = document.find(keyword_to_find,end_index,flag)
                 
                 self.text_edit.setTextCursor(cursor)
             else:
-                QMessageBox.information(self, '메모장', f'"{self.keyword_to_find}"을(를) 찾을 수 없습니다.')
+                QMessageBox.information(self, '메모장', f'"{keyword_to_find}"을(를) 찾을 수 없습니다.')
+    
+    def when_replace(self,document,cursor,cursor_position,keyword_to_find,replace):
+        if self.case_sensitivity_checkbox.isChecked():
+            flag = QTextDocument.FindCaseSensitively
+            cursor = document.find(keyword_to_find,cursor_position,flag)
+        else:
+            cursor = document.find(keyword_to_find,cursor_position)
+        
+        if not cursor.isNull():
+            print(1)
+            self.text_edit.setTextCursor(cursor)
+        else:
+            print(0)
+            if self.wrap_around_checkbox.isChecked():
+                if self.case_sensitivity_checkbox.isChecked():
+                    flag = QTextDocument.FindCaseSensitively
+                    cursor = document.find(keyword_to_find,0,flag)
+                else:
+                    cursor = document.find(keyword_to_find,0)
+                
+                self.text_edit.setTextCursor(cursor)
+                
+                if not self.text_edit.textCursor().selectedText():
+                    flag = QTextDocument.FindBackward
+                    cursor = document.find(self.keyword_to_replace,cursor_position,flag)
+                    self.text_edit.setTextCursor(cursor)
+                    QMessageBox.information(self, '메모장', f'"{keyword_to_find}"을(를) 찾을 수 없습니다.')
+            else:
+                if replace:
+                    flag = QTextDocument.FindBackward
+                    cursor = document.find(self.keyword_to_replace,cursor_position,flag)
+                    self.text_edit.setTextCursor(cursor)
+                    QMessageBox.information(self, '메모장', f'"{keyword_to_find}"을(를) 찾을 수 없습니다.')
+                else:
+                    QMessageBox.information(self, '메모장', f'"{keyword_to_find}"을(를) 찾을 수 없습니다.')
     
     def set_find_next_action(self):
         self.config['find_upndown'] = 'down'
@@ -540,10 +580,6 @@ class MainWindow(QMainWindow,SetActions):
         
         # layout
         grid_layout = QGridLayout(self.replace_window)
-        horizon_find_lineedit_layout = QHBoxLayout()
-        horizon_replace_lineedit_layout = QHBoxLayout()
-        vertical_button_layout = QVBoxLayout()
-        vertical_checkbox_layout = QVBoxLayout()
         
         # widget
         find_label = QLabel('찾을 내용(N):')
@@ -555,6 +591,7 @@ class MainWindow(QMainWindow,SetActions):
             self.keyword_to_find = self.config['find_keyword']
         self.find_line_edit.setText(self.keyword_to_find)
         self.find_line_edit.selectAll()
+        self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
         
         replace_label = QLabel('바꿀 내용(P):')
         self.replace_line_edit = QLineEdit()
@@ -567,8 +604,10 @@ class MainWindow(QMainWindow,SetActions):
             self.find_next_button.setEnabled(True)
         else:
             self.find_next_button.setEnabled(False)
+        self.find_next_button.clicked.connect(self.set_find_next_button)
         
         self.replace_button = QPushButton('바꾸기(&R)')
+        self.replace_button.clicked.connect(self.set_replace_button)
         
         self.all_replace_button = QPushButton('모두 바꾸기(&A)')
         
@@ -587,10 +626,6 @@ class MainWindow(QMainWindow,SetActions):
         else:
             self.wrap_around_checkbox.setChecked(True)
         
-        # signal
-        self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
-        self.find_next_button.clicked.connect(self.set_find_next_button)
-        
         # add widget
         grid_layout.addWidget(find_label,0,0)
         grid_layout.addWidget(self.find_line_edit,0,1,1,3)
@@ -605,18 +640,34 @@ class MainWindow(QMainWindow,SetActions):
         grid_layout.addWidget(self.case_sensitivity_checkbox,3,0,1,2)
         grid_layout.addWidget(self.wrap_around_checkbox,4,0,1,2)
         
-        # grid_layout.addWidget(QWidget(self.replace_window),4,2,1,1)
-        # grid_layout.addWidget(QWidget(self.replace_window),4,3,1,1)
-        # grid_layout.addWidget(QWidget(self.replace_window),4,4,1,1)
-        
         # self.replace_window.setAttribute(Qt.WA_DeleteOnClose)
         self.replace_window.closeEvent = self.set_find_cancel_button
         self.replace_window.show()
+    
+    def set_replace_button(self):
+        replace = None
+        cursor = self.text_edit.textCursor()
+        self.keyword_to_find = self.find_line_edit.text()
+        self.keyword_to_replace = self.replace_line_edit.text()
+        if cursor.selectedText():
+            if cursor.selectedText() == self.keyword_to_find:
+                cursor.insertText(self.keyword_to_replace)
+                self.set_find_next_button(replace=True)
+            else:
+                if not self.case_sensitivity_checkbox.isChecked():
+                    cursor.insertText(self.keyword_to_replace)
+                    self.set_find_next_button(replace=True)
+                else:
+                    self.set_find_next_button(replace=False)
+        else:
+            self.set_find_next_button(replace=False)
     
     def set_find_cancel_button(self,event):
         self.config['find_keyword'] = self.find_line_edit.text()
         if not self.find_line_edit.text():
             self.find_next_action_isrun = False
+        
+        self.config['replace_keyword'] = self.replace_line_edit.text()
         
         if self.find_status == 'find':
             if self.radiobox_down.isChecked():
