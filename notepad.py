@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QApplication,QMainWindow,QGridLayout,QFrame,
     QPlainTextEdit,QMenuBar,QMenu,QStatusBar,
     QDialog,QLabel,QLineEdit,QPushButton,QHBoxLayout,QVBoxLayout,QCheckBox,QRadioButton,QGroupBox,QMessageBox)
-from PySide6.QtGui import QAction,QIcon,QFont,QColor,QPalette,QTextDocument
+from PySide6.QtGui import QAction,QIcon,QFont,QColor,QPalette,QTextDocument,QTextCursor,QUndoStack
 from PySide6.QtCore import Qt
 
 from actions import SetActions
@@ -201,7 +201,7 @@ class MainWindow(QMainWindow,SetActions):
         self.undo_action = QAction('실행 취소(&U)')
         self.undo_action.setShortcut('Ctrl+Z')
         self.undo_action.setDisabled(True)
-        self.undo_action.triggered.connect(self.text_edit.undo)
+        self.undo_action.triggered.connect(self.set_undo_action)
         
         self.redo_action = QAction('다시 실행(&Y)')
         self.redo_action.setShortcut('Ctrl+Y')
@@ -609,7 +609,8 @@ class MainWindow(QMainWindow,SetActions):
         self.replace_button = QPushButton('바꾸기(&R)')
         self.replace_button.clicked.connect(self.set_replace_button)
         
-        self.all_replace_button = QPushButton('모두 바꾸기(&A)')
+        self.replace_all_button = QPushButton('모두 바꾸기(&A)')
+        self.replace_all_button.clicked.connect(self.set_replace_all_button)
         
         find_cancel_button = QPushButton('취소')
         find_cancel_button.clicked.connect(self.set_find_cancel_button)
@@ -634,7 +635,7 @@ class MainWindow(QMainWindow,SetActions):
         
         grid_layout.addWidget(self.find_next_button,0,4)
         grid_layout.addWidget(self.replace_button,1,4)
-        grid_layout.addWidget(self.all_replace_button,2,4)
+        grid_layout.addWidget(self.replace_all_button,2,4)
         grid_layout.addWidget(find_cancel_button,3,4)
         
         grid_layout.addWidget(self.case_sensitivity_checkbox,3,0,1,2)
@@ -661,6 +662,19 @@ class MainWindow(QMainWindow,SetActions):
                     self.set_find_next_button(replace=False)
         else:
             self.set_find_next_button(replace=False)
+    
+    def set_replace_all_button(self):
+        text = self.text_edit.toPlainText()
+        self.find_keyword = self.find_line_edit.text()
+        self.replace_keyword = self.replace_line_edit.text()
+        new_text = text.replace(self.find_keyword, self.replace_keyword)
+        
+        cursor = self.text_edit.textCursor()
+        cursor.beginEditBlock()
+        cursor.select(QTextCursor.Document)
+        cursor.removeSelectedText()
+        cursor.insertText(new_text)
+        cursor.endEditBlock()
     
     def set_find_cancel_button(self,event):
         self.config['find_keyword'] = self.find_line_edit.text()
@@ -692,7 +706,7 @@ class MainWindow(QMainWindow,SetActions):
             self.find_window.close()
         elif self.find_status == 'replace':
             self.replace_window.close()
-    
+
 app = QApplication(sys.argv)
 window = MainWindow()
 app.exec()

@@ -188,6 +188,11 @@ class SetActions:
             self.text_edit.print(QPrintDialog.printer())
     
     # edit action
+    def set_undo_action(self):
+        self.text_edit.undo()
+        if self.find_status == 'replace':
+            self.text_edit.selectAll()
+    
     def delete(self):
         cursor = self.text_edit.textCursor()
         if not cursor.hasSelection():
@@ -206,12 +211,6 @@ class SetActions:
             self.find_action.setEnabled(False)
             self.find_next_action.setEnabled(False)
             self.find_previous_action.setEnabled(False)
-    
-    # def undo_available(self,available):
-    #     self.undo_action.setEnabled(available)
-    
-    # def redo_available(self,available):
-    #     self.redo_action.setEnabled(available)
     
     def select_available(self,yes):
         self.cut_action.setEnabled(yes)
