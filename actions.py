@@ -550,6 +550,8 @@ class SetActions:
             self.find_action.setEnabled(False)
             self.find_next_action.setEnabled(False)
             self.find_previous_action.setEnabled(False)
+        
+        self.go_to_action.setDisabled(self.word_wrap_action.isChecked())
     
     def select_available(self,yes):
         self.cut_action.setEnabled(yes)

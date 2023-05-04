@@ -1,6 +1,9 @@
 import sys,os,json
-from PySide6.QtWidgets import (QApplication,QMainWindow,QFrame,QPlainTextEdit,QMenuBar,QMenu,QStatusBar,QLabel)
-from PySide6.QtGui import QAction,QIcon,QFont,QColor,QPalette
+from PySide6.QtWidgets import (
+    QApplication,QMainWindow,QFrame,QPlainTextEdit,QMenuBar,QMenu,QStatusBar,QLabel,
+    
+    QDialog,QVBoxLayout,QLineEdit,QHBoxLayout,QPushButton,QDialogButtonBox)
+from PySide6.QtGui import QAction,QIcon,QFont,QColor,QPalette ,QIntValidator
 from PySide6.QtCore import Qt
 
 from actions import SetActions
@@ -28,6 +31,7 @@ class MainWindow(QMainWindow,SetActions):
         self.encoding = 'UTF-8'
         self.find_next_action_isrun = False
         self.find_status = ''
+        self.go_to_line_number = 1
         
         self.setWindowIcon(QIcon('./image/notepad_icon.png'))
         self.setWindowTitle(self.window_title)
@@ -248,6 +252,7 @@ class MainWindow(QMainWindow,SetActions):
         
         self.go_to_action = QAction('이동(&G)...')
         self.go_to_action.setShortcut('Ctrl+G')
+        self.go_to_action.triggered.connect(self.set_go_to_action)
         
         separator3 = self.edit_menu.addSeparator()
         
@@ -372,6 +377,55 @@ class MainWindow(QMainWindow,SetActions):
         self.config['geometry'] = self.x(),self.y()+30,self.width(),self.height()
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
             json.dump(self.config,w,indent=4)
+    
+    def set_go_to_action(self):
+        go_to_window = QDialog(self)
+        go_to_window.setWindowTitle('줄 이동')
+        go_to_window.setFixedSize(234,134)
+        go_to_window.setModal(True)
+        validator = QIntValidator()
+        
+        label = QLabel('줄 번호(L):')
+        label.setAlignment(Qt.AlignTop)
+        label.setMaximumHeight(20)
+        
+        self.go_to_lineedit = QLineEdit()
+        self.go_to_lineedit.setMaximumHeight(30)
+        self.go_to_lineedit.setValidator(validator)
+        self.go_to_lineedit.setText(str(self.go_to_line_number))
+        self.go_to_lineedit.selectAll()
+        
+        go_to_button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        go_to_button_box.accepted.connect(go_to_window.accept)
+        go_to_button_box.rejected.connect(go_to_window.reject)
+        
+        self.go_to_button = go_to_button_box.button(QDialogButtonBox.Ok)
+        self.go_to_button.setText('이동')
+        self.go_to_button.clicked.connect(self.set_go_to_button)
+        
+        self.go_to_cancel_button = go_to_button_box.button(QDialogButtonBox.Cancel)
+        self.go_to_cancel_button.setText('취소')
+        
+        go_to_layout = QVBoxLayout()
+        go_to_layout.addWidget(label)
+        go_to_layout.addWidget(self.go_to_lineedit)
+        button_layout = QHBoxLayout()
+        button_layout.addStretch(1)
+        button_layout.addWidget(go_to_button_box)
+        go_to_layout.addLayout(button_layout)
+        
+        go_to_window.setLayout(go_to_layout)
+        go_to_window.show()
+    
+    def set_go_to_button(self):
+        # init
+        self.go_to_line_number = self.go_to_lineedit.text()
+        text_edit = self.text_edit
+        cursor = text_edit.textCursor()
+        
+        cursor.setPosition(text_edit.document().findBlockByLineNumber(int(self.go_to_line_number)-1).position())
+        text_edit.setTextCursor(cursor)
+
 
 app = QApplication(sys.argv)
 window = MainWindow()

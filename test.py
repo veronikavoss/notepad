@@ -1,22 +1,31 @@
-from PySide6.QtWidgets import QMainWindow,QPlainTextEdit,QApplication
-from PySide6.QtGui import QTextDocument
-import sys
+from PySide6.QtWidgets import QApplication, QWidget, QLineEdit, QVBoxLayout
+from PySide6.QtGui import QIntValidator
 
-class MainWindow(QMainWindow):
+class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('test')
-        self.text_edit = QPlainTextEdit(self)
-        self.document = self.text_edit.document()
-        self.setCentralWidget(self.text_edit)
-    
-    def count_text(self):
-        text = self.text_edit.toPlainText()
-        target_text = "Hello World!"
-        count = text.count(target_text)
-        print(f"{target_text} appears {count} times in the text.")
 
-app = QApplication(sys.argv)
-window = MainWindow()
-window.show()
-app.exec()
+        self.initUI()
+
+    def initUI(self):
+        # QLineEdit 위젯 생성
+        self.lineedit = QLineEdit(self)
+
+        # QIntValidator 생성
+        validator = QIntValidator()
+
+        # QLineEdit 위젯에 QIntValidator 설정
+        self.lineedit.setValidator(validator)
+
+        # 레이아웃 생성
+        layout = QVBoxLayout()
+        layout.addWidget(self.lineedit)
+
+        # 윈도우에 레이아웃 설정
+        self.setLayout(layout)
+
+if __name__ == '__main__':
+    app = QApplication([])
+    window = MainWindow()
+    window.show()
+    app.exec()
