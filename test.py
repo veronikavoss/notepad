@@ -1,31 +1,38 @@
-from PySide6.QtWidgets import QApplication, QWidget, QLineEdit, QVBoxLayout
-from PySide6.QtGui import QIntValidator
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeyEvent
+from PySide6.QtWidgets import QApplication, QLineEdit, QWidget
 
-class MainWindow(QWidget):
+
+class NumberLineEdit(QLineEdit):
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key_Return:
+            # 엔터 키 입력 시 focus 제거
+            self.clearFocus()
+        elif event.key() == Qt.Key_Backspace:
+            # 백스페이스 키 입력 시 QLineEdit의 기본 동작 수행
+            super().keyPressEvent(event)
+        else:
+            # 숫자만 입력 가능하도록 제한
+            if event.text().isdigit():
+                super().keyPressEvent(event)
+
+class Example(QWidget):
     def __init__(self):
         super().__init__()
 
         self.initUI()
 
     def initUI(self):
-        # QLineEdit 위젯 생성
-        self.lineedit = QLineEdit(self)
+        self.lineedit = NumberLineEdit(self)
+        self.lineedit.move(20, 20)
+        self.lineedit.resize(200, 30)
 
-        # QIntValidator 생성
-        validator = QIntValidator()
+        self.setGeometry(100, 100, 300, 200)
+        self.setWindowTitle('Number Line Edit')
+        self.show()
 
-        # QLineEdit 위젯에 QIntValidator 설정
-        self.lineedit.setValidator(validator)
-
-        # 레이아웃 생성
-        layout = QVBoxLayout()
-        layout.addWidget(self.lineedit)
-
-        # 윈도우에 레이아웃 설정
-        self.setLayout(layout)
 
 if __name__ == '__main__':
     app = QApplication([])
-    window = MainWindow()
-    window.show()
-    app.exec()
+    ex = Example()
+    app.exec_()
