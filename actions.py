@@ -4,7 +4,8 @@ from PySide6.QtWidgets import (
     QToolTip,QMessageBox,QFileDialog)
 from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog,QPrinter
 from PySide6.QtGui import QFont,QTextDocument,QTextCursor,QIntValidator,QKeyEvent,QKeySequence
-from PySide6.QtCore import Qt,QPoint
+from PySide6.QtCore import Qt,QPoint,QDateTime,QTime
+
 import os,chardet,json
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -634,7 +635,22 @@ class SetActions:
             cursor.setPosition(text_edit.document().findBlockByLineNumber(int(go_to_line_number)-1).position())
             text_edit.setTextCursor(cursor)
             self.go_to_line_number = self.go_to_lineedit.text()
-
+    
+    def set_time_data_action(self):
+        now = QDateTime.currentDateTime()
+        date = now.date().toString(Qt.ISODate)
+        time = QTime.currentTime()
+        hour = QTime.currentTime().hour()
+        minute = time.minute()
+        if hour < 12:
+            ampm = '오전'
+        else:
+            ampm = '오후'
+            hour = hour-12
+        time_date = f'{ampm} {hour}:{minute} {date}'
+        
+        self.text_edit.insertPlainText(time_date)
+    
     # slot
     def show_edit_menu(self):
         self.paste_action.setEnabled(self.text_edit.canPaste())

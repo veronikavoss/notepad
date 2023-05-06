@@ -258,9 +258,11 @@ class MainWindow(QMainWindow,SetActions):
         
         self.select_all_action = QAction('모두 선택(&A)')
         self.select_all_action.setShortcut('Ctrl+A')
+        self.select_all_action.triggered.connect(lambda: self.text_edit.selectAll())
         
         self.time_date_action = QAction('시간/날짜(&D)')
         self.time_date_action.setShortcut('F5')
+        self.time_date_action.triggered.connect(self.set_time_data_action)
         
         self.edit_menu.addActions([
             self.undo_action,
