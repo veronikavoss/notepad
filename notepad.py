@@ -2,9 +2,9 @@ import sys,os,json
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QFrame,QPlainTextEdit,QMenuBar,QMenu,QStatusBar,QLabel,
     
-    QDialog,QVBoxLayout,QLineEdit,QHBoxLayout,QPushButton,QDialogButtonBox,QToolTip)
-from PySide6.QtGui import QAction,QIcon,QFont,QColor,QPalette ,QIntValidator,QKeyEvent,QKeySequence
-from PySide6.QtCore import Qt,QPoint
+    )
+from PySide6.QtGui import QAction,QIcon,QFont,QColor,QPalette
+from PySide6.QtCore import Qt
 
 from actions import SetActions
 
@@ -377,94 +377,6 @@ class MainWindow(QMainWindow,SetActions):
         self.config['geometry'] = self.x(),self.y()+30,self.width(),self.height()
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
             json.dump(self.config,w,indent=4)
-    
-    def set_go_to_action(self):
-        self.go_to_window = QDialog(self)
-        self.go_to_window.setWindowTitle('줄 이동')
-        self.go_to_window.setFixedSize(234,134)
-        self.go_to_window.setModal(True)
-        
-        label = QLabel('줄 번호(L):')
-        label.setAlignment(Qt.AlignTop)
-        label.setMaximumHeight(20)
-        
-        self.go_to_lineedit = QLineEdit()
-        self.go_to_lineedit.setMaximumHeight(30)
-        self.go_to_lineedit.setText(str(self.go_to_line_number))
-        self.go_to_lineedit.selectAll()
-        # self.go_to_lineedit.textChanged.connect(self.checking_modify_go_to_line)
-        self.go_to_lineedit.keyPressEvent = self.checking_modify_go_to_line
-        
-        go_to_button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        go_to_button_box.accepted.connect(self.go_to_window.accept)
-        go_to_button_box.rejected.connect(self.go_to_window.reject)
-        
-        self.go_to_button = go_to_button_box.button(QDialogButtonBox.Ok)
-        self.go_to_button.setText('이동')
-        self.go_to_button.clicked.connect(self.set_go_to_button)
-        
-        self.go_to_cancel_button = go_to_button_box.button(QDialogButtonBox.Cancel)
-        self.go_to_cancel_button.setText('취소')
-        
-        go_to_layout = QVBoxLayout()
-        go_to_layout.addWidget(label)
-        go_to_layout.addWidget(self.go_to_lineedit)
-        button_layout = QHBoxLayout()
-        button_layout.addStretch(1)
-        button_layout.addWidget(go_to_button_box)
-        go_to_layout.addLayout(button_layout)
-        
-        self.go_to_window.setLayout(go_to_layout)
-        self.go_to_window.show()
-    
-    def keyPressEvent(self, event: QKeyEvent):
-        if event.key() == Qt.Key_Return:
-            # 엔터 키 입력 시 focus 제거
-            self.clearFocus()
-        elif event.key() == Qt.Key_Backspace:
-            # 백스페이스 키 입력 시 QLineEdit의 기본 동작 수행
-            super().keyPressEvent(event)
-        else:
-            # 숫자만 입력 가능하도록 제한
-            if event.text().isdigit():
-                super().keyPressEvent(event)
-    
-    def checking_modify_go_to_line(self, event: QKeyEvent):
-        key = event.key()
-        key_name = QKeySequence(key).toString()
-        isdigit = key_name.isdigit()
-        print(isdigit,key_name)
-        validator = QIntValidator()
-        keys = [Qt.Key_Backspace,Qt.Key_Left,Qt.Key_Right,Qt.Key_Delete,Qt.Key_Home,Qt.Key_End]
-        
-        for key in keys:
-            if event.key() == key:
-                QLineEdit.keyPressEvent(self.go_to_lineedit, event)
-                QToolTip.hideText()
-        
-        if event.key() == Qt.Key_Escape:
-            QLineEdit.keyPressEvent(self.go_to_lineedit, event)
-            self.go_to_window.close()
-        elif event.key() == Qt.Key_Return:
-            QLineEdit.keyPressEvent(self.go_to_lineedit, event)
-            self.go_to_button.click()
-        elif isdigit:
-            QLineEdit.keyPressEvent(self.go_to_lineedit, event)
-            QToolTip.hideText()
-        else:
-            if event.key() not in keys:
-                self.go_to_lineedit.setValidator(validator)
-                QToolTip.showText(self.go_to_lineedit.mapToGlobal(QPoint(0, 0)), "허용되지 않는 문자\n여기에는 숫자만 입력할 수 있습니다.")
-        event.accept()
-
-    def set_go_to_button(self):
-        # init
-        self.go_to_line_number = self.go_to_lineedit.text()
-        text_edit = self.text_edit
-        cursor = text_edit.textCursor()
-        
-        cursor.setPosition(text_edit.document().findBlockByLineNumber(int(self.go_to_line_number)-1).position())
-        text_edit.setTextCursor(cursor)
 
 
 app = QApplication(sys.argv)
