@@ -1,38 +1,23 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QKeyEvent
-from PySide6.QtWidgets import QApplication, QLineEdit, QWidget
+from PySide6.QtWidgets import QMainWindow, QApplication, QPlainTextEdit
+from PySide6.QtGui import QAction
 
-
-class NumberLineEdit(QLineEdit):
-    def keyPressEvent(self, event: QKeyEvent):
-        if event.key() == Qt.Key_Return:
-            # 엔터 키 입력 시 focus 제거
-            self.clearFocus()
-        elif event.key() == Qt.Key_Backspace:
-            # 백스페이스 키 입력 시 QLineEdit의 기본 동작 수행
-            super().keyPressEvent(event)
-        else:
-            # 숫자만 입력 가능하도록 제한
-            if event.text().isdigit():
-                super().keyPressEvent(event)
-
-class Example(QWidget):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.textedit = QPlainTextEdit(self)
+        self.textedit.setPlainText("Hello, world!")
+        self.word_wrap_action = QAction('자동 줄 바꿈(W&)', self)
+        self.word_wrap_action.setCheckable(True)
+        self.word_wrap_action.setChecked(True)
+        self.word_wrap_action.triggered.connect(self.toggle_word_wrap)
+        self.addAction(self.word_wrap_action)
+        self.setCentralWidget(self.textedit)
 
-        self.initUI()
+    def toggle_word_wrap(self, checked):
+        wrap_mode = QPlainTextEdit.WidgetWidth if checked else QPlainTextEdit.NoWrap
+        self.textedit.setWordWrapMode(wrap_mode)
 
-    def initUI(self):
-        self.lineedit = NumberLineEdit(self)
-        self.lineedit.move(20, 20)
-        self.lineedit.resize(200, 30)
-
-        self.setGeometry(100, 100, 300, 200)
-        self.setWindowTitle('Number Line Edit')
-        self.show()
-
-
-if __name__ == '__main__':
-    app = QApplication([])
-    ex = Example()
-    app.exec_()
+app = QApplication([])
+window = MainWindow()
+window.show()
+app.exec()

@@ -55,7 +55,8 @@ class MainWindow(QMainWindow,SetActions):
             'replace_keyword':'',
             'find_upndown':'',
             'case_sensitivity':'',
-            'wrap_around':''}
+            'wrap_around':'',
+            'word_wrap_action':''}
         
         try:
             with open(str(os.path.join(CURRENT_PATH,'config.json')),'r') as r:
@@ -92,6 +93,11 @@ class MainWindow(QMainWindow,SetActions):
             self.config['wrap_around'] = config_json['wrap_around']
         else:
             self.config['wrap_around'] = 'no'
+        
+        if config_json['word_wrap_action']:
+            self.config['word_wrap_action'] = config_json['word_wrap_action']
+        else:
+            self.config['word_wrap_action'] = False
         print(self.config)
     
     def set_text_edit(self):
@@ -287,7 +293,9 @@ class MainWindow(QMainWindow,SetActions):
     def set_format_action(self):
         self.word_wrap_action = QAction('자동 줄 바꿈(W&)')
         self.word_wrap_action.setCheckable(True)
-        self.word_wrap_action.setChecked(True)
+        self.word_wrap_action.setChecked(self.config['word_wrap_action'])
+        self.word_wrap_action.triggered.connect(self.set_word_wrap_action)
+        self.set_word_wrap_action(self.config['word_wrap_action'])
         
         self.set_font_action = QAction('글꼴(F&)...')
         self.set_font_action.setShortcut('Ctrl+Shift+')
@@ -377,9 +385,10 @@ class MainWindow(QMainWindow,SetActions):
             self.run_messagebox_button()
         
         self.config['geometry'] = self.x(),self.y()+30,self.width(),self.height()
+        self.config['word_wrap_action'] = self.word_wrap_action.isChecked()
+        
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
             json.dump(self.config,w,indent=4)
-
 
 app = QApplication(sys.argv)
 window = MainWindow()

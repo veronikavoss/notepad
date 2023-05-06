@@ -9,5 +9,6 @@
     "replace_keyword": "-",
     "find_upndown": "up",
     "case_sensitivity": "yes",
-    "wrap_around": "yes"
+    "wrap_around": "yes",
+    "word_wrap_action": true
 }

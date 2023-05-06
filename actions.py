@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QGroupBox,QMessageBox,QDialog,QVBoxLayout,QLineEdit,QHBoxLayout,QPushButton,QDialogButtonBox,
     QToolTip,QMessageBox,QFileDialog)
 from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog,QPrinter
-from PySide6.QtGui import QFont,QTextDocument,QTextCursor,QIntValidator,QKeyEvent,QKeySequence
+from PySide6.QtGui import QFont,QTextDocument,QTextCursor,QIntValidator,QKeyEvent,QKeySequence,QTextOption
 from PySide6.QtCore import Qt,QPoint,QDateTime,QTime
 
 import os,chardet,json
@@ -651,7 +651,7 @@ class SetActions:
         
         self.text_edit.insertPlainText(time_date)
     
-    # slot
+    # edit slot
     def show_edit_menu(self):
         self.paste_action.setEnabled(self.text_edit.canPaste())
         
@@ -676,6 +676,11 @@ class SetActions:
             self.find_next_button.setEnabled(True)
         else:
             self.find_next_button.setEnabled(False)
+    
+    # format action
+    def set_word_wrap_action(self, checked):
+        wrap_mode = QTextOption.WrapAtWordBoundaryOrAnywhere if checked else QTextOption.NoWrap
+        self.text_edit.setWordWrapMode(wrap_mode)
     
     # view action
     def set_zoom_in(self):
