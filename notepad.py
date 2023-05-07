@@ -2,7 +2,7 @@ import sys,os,json
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QFrame,QPlainTextEdit,QMenuBar,QMenu,QStatusBar,QLabel,
     
-    )
+    QDialog,QDialogButtonBox,QVBoxLayout,QHBoxLayout,QLineEdit,QListView,QGroupBox)
 from PySide6.QtGui import QAction,QIcon,QFont,QColor,QPalette
 from PySide6.QtCore import Qt
 
@@ -298,7 +298,7 @@ class MainWindow(QMainWindow,SetActions):
         self.set_word_wrap_action(self.config['word_wrap_action'])
         
         self.set_font_action = QAction('글꼴(F&)...')
-        self.set_font_action.setShortcut('Ctrl+Shift+')
+        self.set_font_action.triggered.connect(self.set_font)
         
         self.format_menu.addActions([self.word_wrap_action,self.set_font_action])
     
@@ -389,6 +389,69 @@ class MainWindow(QMainWindow,SetActions):
         
         with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
             json.dump(self.config,w,indent=4)
+    
+    def set_font(self):
+        font_window = QDialog(self)
+        font_window.setFixedSize(404,486)
+        
+        font_label = QLabel('글꼴(F):')
+        font_lineedit = QLineEdit()
+        font_list = QListView()
+        
+        font_style_label = QLabel('글꼴 스타일(Y):')
+        font_style_lineedit = QLineEdit()
+        font_style_list = QListView()
+        
+        font_size_label = QLabel('크기(S):')
+        font_size_lineedit = QLineEdit()
+        font_size_list = QListView()
+        
+        font_preview_groupbox = QGroupBox('보기')
+        
+        font_button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        font_button_box.accepted.connect(font_window.accept)
+        font_button_box.rejected.connect(font_window.reject)
+        
+        self.font_button = font_button_box.button(QDialogButtonBox.Ok)
+        self.font_button.setText('이동')
+        # self.font_button.clicked.connect(self.set_font_button)
+        
+        self.font_cancel_button = font_button_box.button(QDialogButtonBox.Cancel)
+        self.font_cancel_button.setText('취소')
+        
+        font_window_layout = QVBoxLayout()
+        horizon_layout = QHBoxLayout()
+        font_layout = QVBoxLayout()
+        font_layout.addWidget(font_label)
+        font_layout.addWidget(font_lineedit)
+        font_layout.addWidget(font_list)
+        font_style_layout = QVBoxLayout()
+        font_style_layout.addWidget(font_style_label)
+        font_style_layout.addWidget(font_style_lineedit)
+        font_style_layout.addWidget(font_style_list)
+        font_size_layout = QVBoxLayout()
+        font_size_layout.addWidget(font_size_label)
+        font_size_layout.addWidget(font_size_lineedit)
+        font_size_layout.addWidget(font_size_list)
+        # horizon_layout.addStretch(1)
+        preview_layout = QVBoxLayout()
+        preview_layout.addWidget(font_preview_groupbox)
+        preview_layout.setAlignment(Qt.AlignRight)
+        preview_layout.addStretch(1)
+        button_layout = QHBoxLayout()
+        button_layout.setAlignment(Qt.AlignBottom)
+        button_layout.addStretch(2)
+        button_layout.addWidget(self.font_button)
+        button_layout.addWidget(self.font_cancel_button)
+        
+        font_window_layout.addLayout(horizon_layout)
+        horizon_layout.addLayout(font_layout)
+        horizon_layout.addLayout(font_style_layout)
+        horizon_layout.addLayout(font_size_layout)
+        font_window_layout.addLayout(preview_layout)
+        font_window_layout.addLayout(button_layout)
+        font_window.setLayout(font_window_layout)
+        font_window.show()
 
 app = QApplication(sys.argv)
 window = MainWindow()

@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QGridLayout,QDialog,QLabel,QLineEdit,QPushButton,QHBoxLayout,QVBoxLayout,QCheckBox,QRadioButton,
-    QGroupBox,QMessageBox,QDialog,QVBoxLayout,QLineEdit,QHBoxLayout,QPushButton,QDialogButtonBox,
-    QToolTip,QMessageBox,QFileDialog)
+    QGroupBox,QMessageBox,QDialogButtonBox,
+    QToolTip,QFileDialog)
 from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog,QPrinter
 from PySide6.QtGui import QFont,QTextDocument,QTextCursor,QIntValidator,QKeyEvent,QKeySequence,QTextOption
 from PySide6.QtCore import Qt,QPoint,QDateTime,QTime
@@ -553,7 +553,6 @@ class SetActions:
         self.go_to_lineedit.setMaximumHeight(30)
         self.go_to_lineedit.setText(str(self.go_to_line_number))
         self.go_to_lineedit.selectAll()
-        # self.go_to_lineedit.textChanged.connect(self.checking_modify_go_to_line)
         self.go_to_lineedit.keyPressEvent = self.checking_modify_go_to_line
         
         go_to_button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
