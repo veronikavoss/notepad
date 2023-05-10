@@ -2,9 +2,9 @@ import sys,os,json
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QFrame,QPlainTextEdit,QMenuBar,QMenu,QStatusBar,QLabel,
     
-    QDialog,QDialogButtonBox,QVBoxLayout,QHBoxLayout,QLineEdit,QListView,QGroupBox)
-from PySide6.QtGui import QAction,QIcon,QFont,QColor,QPalette
-from PySide6.QtCore import Qt
+    QDialog,QDialogButtonBox,QVBoxLayout,QHBoxLayout,QLineEdit,QListView,QGroupBox,QComboBox)
+from PySide6.QtGui import QAction,QIcon,QColor,QPalette ,QDesktopServices,QFont,QFontDatabase,QStandardItemModel,QStandardItem
+from PySide6.QtCore import Qt ,QUrl
 
 from actions import SetActions
 
@@ -392,66 +392,123 @@ class MainWindow(QMainWindow,SetActions):
     
     def set_font(self):
         font_window = QDialog(self)
+        font_window.setModal(True)
+        font_window.setWindowTitle('글꼴')
         font_window.setFixedSize(404,486)
         
+        # widget settings
         font_label = QLabel('글꼴(F):')
         font_lineedit = QLineEdit()
-        font_list = QListView()
+        self.font_list = QListView()
+        self.set_font_widget(font_label, font_lineedit, self.font_list, 160)
+        self.set_font_list()
         
         font_style_label = QLabel('글꼴 스타일(Y):')
         font_style_lineedit = QLineEdit()
         font_style_list = QListView()
+        self.set_font_widget(font_style_label, font_style_lineedit, font_style_list, 120)
         
         font_size_label = QLabel('크기(S):')
         font_size_lineedit = QLineEdit()
         font_size_list = QListView()
+        self.set_font_widget(font_size_label, font_size_lineedit, font_size_list, 60)
         
         font_preview_groupbox = QGroupBox('보기')
+        font_preview_groupbox.setMaximumHeight(100)
+        # font_preview_groupbox.setMaximumSize(QSize(16777215, 120))
+        font_preview_label = QLabel('AaBbYyZz')
+        font_preview_label.setAlignment(Qt.AlignCenter)
+        font_preview_groupbox_layout = QVBoxLayout(font_preview_groupbox)
+        font_preview_groupbox_layout.addWidget(font_preview_label)
+        
+        font_script_label = QLabel('스크립트(R):')
+        font_script_combobox = QComboBox()
+        
+        show_more_fonts_label = QLabel()
+        show_more_fonts_label.setText('<a href="ms-settings:fonts">다른 글꼴 표시</a>')
+        show_more_fonts_label.setOpenExternalLinks(False)  # 하이퍼링크를 외부 브라우저에서 열지 않도록 설정
+        show_more_fonts_label.linkActivated.connect(self.show_more_fonts)
         
         font_button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         font_button_box.accepted.connect(font_window.accept)
         font_button_box.rejected.connect(font_window.reject)
         
         self.font_button = font_button_box.button(QDialogButtonBox.Ok)
-        self.font_button.setText('이동')
+        self.font_button.setText('확인')
         # self.font_button.clicked.connect(self.set_font_button)
         
         self.font_cancel_button = font_button_box.button(QDialogButtonBox.Cancel)
         self.font_cancel_button.setText('취소')
         
+        # layout setting
         font_window_layout = QVBoxLayout()
+        font_window.setLayout(font_window_layout)
+        
         horizon_layout = QHBoxLayout()
+        font_window_layout.addLayout(horizon_layout)
+        
         font_layout = QVBoxLayout()
+        font_layout.setSpacing(0)
         font_layout.addWidget(font_label)
         font_layout.addWidget(font_lineedit)
-        font_layout.addWidget(font_list)
+        font_layout.addWidget(self.font_list)
         font_style_layout = QVBoxLayout()
+        font_style_layout.setSpacing(0)
         font_style_layout.addWidget(font_style_label)
         font_style_layout.addWidget(font_style_lineedit)
         font_style_layout.addWidget(font_style_list)
         font_size_layout = QVBoxLayout()
+        font_size_layout.setSpacing(0)
         font_size_layout.addWidget(font_size_label)
         font_size_layout.addWidget(font_size_lineedit)
         font_size_layout.addWidget(font_size_list)
-        # horizon_layout.addStretch(1)
-        preview_layout = QVBoxLayout()
-        preview_layout.addWidget(font_preview_groupbox)
-        preview_layout.setAlignment(Qt.AlignRight)
-        preview_layout.addStretch(1)
-        button_layout = QHBoxLayout()
-        button_layout.setAlignment(Qt.AlignBottom)
-        button_layout.addStretch(2)
-        button_layout.addWidget(self.font_button)
-        button_layout.addWidget(self.font_cancel_button)
         
-        font_window_layout.addLayout(horizon_layout)
         horizon_layout.addLayout(font_layout)
         horizon_layout.addLayout(font_style_layout)
         horizon_layout.addLayout(font_size_layout)
-        font_window_layout.addLayout(preview_layout)
+        horizon_layout.setContentsMargins(4,4,4,0)
+        horizon_layout.setSpacing(14)
+        
+        font_preview_layout = QVBoxLayout()
+        font_preview_layout.addWidget(font_preview_groupbox)
+        font_preview_layout.addWidget(font_script_label)
+        font_preview_layout.addWidget(font_script_combobox)
+        font_preview_layout.setContentsMargins(178,4,4,0)
+        
+        button_layout = QHBoxLayout()
+        # button_layout.setAlignment(Qt.AlignBottom)
+        button_layout.addStretch(2)
+        button_layout.addWidget(font_button_box)
+        
+        font_window_layout.addLayout(font_preview_layout)
+        font_window_layout.addStretch(1)
+        font_window_layout.addWidget(show_more_fonts_label)
         font_window_layout.addLayout(button_layout)
-        font_window.setLayout(font_window_layout)
+        
         font_window.show()
+    
+    def set_font_widget(self,label,lineedit,list,size):
+        label.setMaximumWidth(size)
+        lineedit.setMaximumWidth(size)
+        list.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        list.setMaximumSize(size,145)
+    
+    def show_more_fonts(self):
+        url = QUrl("ms-settings:fonts")
+        QDesktopServices.openUrl(url)
+    
+    def set_font_list(self):
+        font_list = QFontDatabase.families()
+        
+        model = QStandardItemModel()
+        self.font_list.setModel(model)
+        for family in font_list:
+            item = QStandardItem(family)
+            try:
+                item.setFont(QFont(family, 12))  # Apply the font
+            except Exception as e:
+                print()
+            model.appendRow(item)
 
 app = QApplication(sys.argv)
 window = MainWindow()

@@ -1,11 +1,11 @@
 {
     "geometry": [
-        745,
-        251,
+        627,
+        187,
         1280,
         1125
     ],
-    "find_keyword": "\uc548\ub155",
+    "find_keyword": "\u20292\u202900:00:43,477 --> 00:00:49,415\u2029\uace0\uc6a9 \uc9c0\uc6d0 \uc218\ub2f9 \uc2ec\uc0ac\ub97c \uc704\ud574\u2029\uba87 \uac00\uc9c0 \uc5ec\ucb64\ubcfc\uac8c\uc694\u2029\u20293\u202900:00:49,411 --> 00:00:51,646\u2029\uae08\ubc29 \ub05d\ub0a0 \uac70\uc608\uc694\u2029\u20294\u202900:00:52,711 --> 00:00:54,378\u2029\uccab \ubc88\uc9f8 \uc9c8\ubb38\uc785\ub2c8\ub2e4\u2029\u20295\u202900:00:54,378 --> 00:00:58,248\u2029\ud0c0\uc778\uc758 \ub3c4\uc6c0 \uc5c6\uc774\u202950\ubbf8\ud130\ub97c \uac78\uc744 \uc218 \uc788\uc2b5\ub2c8\uae4c?\u2029\u20296\u202900:00:58,245 --> 00:01:00,045\u2029- \ub124\u2029- \uc88b\uc2b5\ub2c8\ub2e4\u2029",
     "replace_keyword": "-",
     "find_upndown": "up",
     "case_sensitivity": "yes",
