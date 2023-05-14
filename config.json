@@ -1,14 +1,19 @@
 {
     "geometry": [
-        641,
-        134,
-        1286,
-        1125
+        326,
+        189,
+        1280,
+        1081
     ],
-    "find_keyword": "A",
-    "replace_keyword": "500find",
-    "find_upndown": "up",
-    "case_sensitivity": "yes",
-    "wrap_around": "yes",
-    "word_wrap_action": false
+    "find_keyword": "",
+    "replace_keyword": "",
+    "find_upndown": "down",
+    "case_sensitivity": "no",
+    "wrap_around": "no",
+    "word_wrap_action": true,
+    "font_family": {
+        "font": "Arial Narrow",
+        "style": "Bold",
+        "size": "12"
+    }
 }

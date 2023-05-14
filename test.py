@@ -1,33 +1,24 @@
-from PySide6.QtCore import Qt, QStringListModel
-from PySide6.QtGui import QFontDatabase
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QListView, QLabel
-import sys
-from PySide6.QtGui import QGuiApplication, QListView
+from PySide6.QtCore import Qt,QStringListModel
+from PySide6.QtWidgets import QApplication, QListView
 
-# QGuiApplication 클래스를 생성합니다.
-app = QGuiApplication(sys.argv)
+app = QApplication([])
 
-# ListView 위젯을 생성합니다.
-listView = QListView()
+# 문자열 리스트 생성
+string_list = ["Item 1", "Item 2", "Item 3", "Item 4"]
 
-# ListView 위젯에 모델을 설정합니다.
+# QStringListModel 생성 및 설정
 model = QStringListModel()
-model.appendRow("Item 1")
-model.appendRow("Item 2")
-model.appendRow("Item 3")
-listView.setModel(model)
+model.setStringList(string_list)
 
-# ListView 위젯을 화면에 표시합니다.
-listView.show()
-
-# ListView 위젯의 currentChanged() 시그널에 연결합니다.
-def on_currentChanged(current_index):
-  print(current_index)
-listView.currentChanged.connect(on_currentChanged)
-from PySide6.QtWidgets import QListView
-
+# 리스트뷰에 모델 설정
 list_view = QListView()
-list_view.selectionModel().selectionChanged.connect(your_slot)
+list_view.setModel(model)
 
-# QGuiApplication 종료
+# 특정 텍스트로 인덱스 찾기
+search_text = "Item 3"
+indexes = model.match(model.index(0), Qt.DisplayRole, search_text, -1, Qt.MatchExactly)
+if indexes:
+    index = indexes[0]
+    print("Index found:", index.row())
+
 app.exec()

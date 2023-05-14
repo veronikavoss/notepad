@@ -7,7 +7,7 @@ from PySide6.QtGui import (
     QFont,QTextDocument,QTextCursor,QIntValidator,QKeyEvent,QKeySequence,QTextOption,
     QAction,QIcon,QColor,QPalette,QDesktopServices,QFontDatabase,QStandardItemModel,QStandardItem)
 
-from PySide6.QtCore import Qt,QPoint,QDateTime,QTime,QUrl,QStringListModel
+from PySide6.QtCore import Qt,QPoint,QDateTime,QTime,QUrl,QStringListModel,QSize,QItemSelectionModel
 
 from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog,QPrinter
 
