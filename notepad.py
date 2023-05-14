@@ -569,27 +569,36 @@ class MainWindow(QMainWindow,SetActions):
         if not font_style_select_item:
             if font_style_select_item != current_font_style:
                 self.font_style_list.setCurrentIndex(self.font_style_list_model.index(0,0))
-                selected_item_text = self.font_style_list_model.itemFromIndex(self.font_style_list_model.index(0,0)).text()
+                selected_style_item_text = self.font_style_list_model.itemFromIndex(self.font_style_list_model.index(0,0)).text()
         else:
             for item in font_style_select_item:
-                selected_item_text = item.text()
+                selected_style_item_text = item.text()
                 index = item.index()
                 self.font_style_list_selectionmodel.select(index,QItemSelectionModel.Select)
-                # selected_item_text = self.font_style_list_model.itemFromIndex(index).text()
+                # selected_style_item_text = self.font_style_list_model.itemFromIndex(index).text()
         
         # select size
         current_font_size = self.config['font_family']['size']
         
+        # 리스트에서 문자열 찾아 인덱스 가져오기
         indexes = self.font_size_list_model.match(
             self.font_size_list_model.index(0), Qt.DisplayRole, current_font_size, -1, Qt.MatchExactly)
+        
         if indexes:
+            # 찾은 인덱스로 선택하기
             index = indexes[0]
-            print("Index found:", index.row())
+            self.font_size_list.setCurrentIndex(index)
+            selected_size_item_text = index.row()
+        else:
+            # 인덱스 0을 선택하고 선택된 값 가져오기
+            self.font_size_list.setCurrentIndex(self.font_size_list_model.index(0))
+            selected_size_item_index = self.font_size_list.selectedIndexes()[0]
+            selected_size_item_text = self.font_size_list_model.data(selected_size_item_index,Qt.DisplayRole)
         
         self.font_lineedit.setText(selected_item)
         self.font_lineedit.selectAll()
-        self.font_style_lineedit.setText(selected_item_text)
-        self.font_size_lineedit.setText(self.config['font_family']['size'])
+        self.font_style_lineedit.setText(selected_style_item_text)
+        self.font_size_lineedit.setText(selected_size_item_text)
     
     def set_select_item(self,model,style,size):
         pass
