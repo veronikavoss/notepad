@@ -414,7 +414,7 @@ class MainWindow(QMainWindow,SetActions):
         self.font_list_model = QStandardItemModel()
         self.font_list.setModel(self.font_list_model)
         self.font_list_selectionmodel = self.font_list.selectionModel()
-        self.font_list_selectionmodel.selectionChanged.connect(self.set_font_item_selected)
+        self.font_list_selectionmodel.selectionChanged.connect(self.set_font_list_item_selected)
         
         font_style_label = QLabel('글꼴 스타일(Y):')
         self.font_style_lineedit = QLineEdit()
@@ -436,7 +436,14 @@ class MainWindow(QMainWindow,SetActions):
         font_preview_groupbox = QGroupBox('보기')
         font_preview_groupbox.setMaximumHeight(100)
         # font_preview_groupbox.setMaximumSize(QSize(16777215, 120))
-        font_preview_label = QLabel('AaBbYyZz')
+        font_preview_label = QLabel()
+        font_preview_label.setMargin(5)
+        font_preview_label.setText('AaBbYyZz')
+        # font_preview_label.setFont(QFont(self.config['font_family']['font'],int(self.config['font_family']['size'])))
+        font = self.config['font_family']['font']
+        style = self.config['font_family']['style']
+        size = self.config['font_family']['size']
+        font_preview_label.setStyleSheet(self.set_font_preview(font,style,size))
         font_preview_label.setAlignment(Qt.AlignCenter)
         font_preview_groupbox_layout = QVBoxLayout(font_preview_groupbox)
         font_preview_groupbox_layout.addWidget(font_preview_label)
@@ -518,10 +525,10 @@ class MainWindow(QMainWindow,SetActions):
         QDesktopServices.openUrl(url)
     
     def set_font_list(self):
-        font_list = QFontDatabase.families()
+        font_families = QFontDatabase.families()
         
         black_list = ['Fixedsys','Modern','MS Serif','MS Sans Serif','Roman','Script','Small Fonts','System','Terminal']
-        for font in font_list:
+        for font in font_families:
             if not QFontDatabase.pointSizes(font):
                 black_list.append(font)
             item = QStandardItem(font)
@@ -533,32 +540,33 @@ class MainWindow(QMainWindow,SetActions):
         current_font = self.config['font_family']['font']
         font_select_item = self.font_list_model.findItems(current_font, Qt.MatchExactly) # MatchFixedString
         for item in font_select_item:
-            font = item.text()
+            selected_font_list_item_text = item.text()
             index = item.index()
             self.font_list_selectionmodel.select(index,QItemSelectionModel.Select)
         
-        self.font_lineedit.setText(self.config['font_family']['font'])
+        self.font_lineedit.setText(selected_font_list_item_text)
         self.font_lineedit.selectAll()
     
-    def set_font_item_selected(self, selected, deselected):
+    def set_font_list_item_selected(self, selected, deselected):
         self.font_style_list_model.clear()
-        
-        if selected.indexes():
-            selected_index = selected.indexes()[0]
-            selected_item = selected_index.data(Qt.DisplayRole)
-            # print(selected_item,selected_index)
+        selected_font_list_item = selected
+        selected_font_list_item_index = selected_font_list_item.indexes()[0]
+        selected_font_list_item_text = selected_font_list_item_index.data(Qt.DisplayRole)
+        # print(selected_item,selected_index)
         
         # append style list
-        font_style_list = [style for style in QFontDatabase.styles(selected_item)]
+        font_style_list = [style for style in QFontDatabase.styles(selected_font_list_item_text)]
         print(font_style_list)
-        for style in font_style_list:
-            item = QStandardItem(style)
-            item.setFont(QFont(selected_item, 12))  # Apply the font
+        for style_name in font_style_list:
+            item = QStandardItem(style_name)
+            font = QFont(selected_font_list_item_text,12)
+            # font.setStyle(style_name)
+            item.setFont(QFont(font))  # Apply the font
             item.setSizeHint(QSize(100,20))
             self.font_style_list_model.appendRow(item)
         
         # append size list
-        font_size_list = [size for size in QFontDatabase.pointSizes(selected_item)]
+        font_size_list = [size for size in QFontDatabase.pointSizes(selected_font_list_item_text)]
         print(font_size_list)
         self.font_size_list_model.setStringList((str(size) for size in font_size_list))
         
@@ -569,10 +577,10 @@ class MainWindow(QMainWindow,SetActions):
         if not font_style_select_item:
             if font_style_select_item != current_font_style:
                 self.font_style_list.setCurrentIndex(self.font_style_list_model.index(0,0))
-                selected_style_item_text = self.font_style_list_model.itemFromIndex(self.font_style_list_model.index(0,0)).text()
+                selected_style_list_item_text = self.font_style_list_model.itemFromIndex(self.font_style_list_model.index(0,0)).text()
         else:
             for item in font_style_select_item:
-                selected_style_item_text = item.text()
+                selected_style_list_item_text = item.text()
                 index = item.index()
                 self.font_style_list_selectionmodel.select(index,QItemSelectionModel.Select)
                 # selected_style_item_text = self.font_style_list_model.itemFromIndex(index).text()
@@ -588,20 +596,21 @@ class MainWindow(QMainWindow,SetActions):
             # 찾은 인덱스로 선택하기
             index = indexes[0]
             self.font_size_list.setCurrentIndex(index)
-            selected_size_item_text = index.row()
+            selected_size_list_item_text = index.row()
         else:
             # 인덱스 0을 선택하고 선택된 값 가져오기
             self.font_size_list.setCurrentIndex(self.font_size_list_model.index(0))
-            selected_size_item_index = self.font_size_list.selectedIndexes()[0]
-            selected_size_item_text = self.font_size_list_model.data(selected_size_item_index,Qt.DisplayRole)
+            selected_size_list_item_index = self.font_size_list.selectedIndexes()[0]
+            selected_size_list_item_text = self.font_size_list_model.data(selected_size_list_item_index,Qt.DisplayRole)
         
-        self.font_lineedit.setText(selected_item)
+        self.font_lineedit.setText(selected_font_list_item_text)
         self.font_lineedit.selectAll()
-        self.font_style_lineedit.setText(selected_style_item_text)
-        self.font_size_lineedit.setText(selected_size_item_text)
+        self.font_style_lineedit.setText(selected_style_list_item_text)
+        self.font_size_lineedit.setText(str(selected_size_list_item_text))
     
-    def set_select_item(self,model,style,size):
-        pass
+    def set_font_preview(self,font,style,size):
+        font_family = f'font-family: {font}; font-style: {style}; font-size: {size}px;'
+        return font_family
     
     def set_font_ok_button(self):
         print(0)

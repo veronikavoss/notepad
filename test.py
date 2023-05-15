@@ -1,31 +1,15 @@
-from PySide6.QtCore import Qt, QStringListModel
-from PySide6.QtWidgets import QApplication, QMainWindow, QListView
+from PySide6.QtWidgets import QApplication, QLabel
 
 app = QApplication([])
+label = QLabel("안녕하세요!")
 
-# QMainWindow나 QDialog 등에 ListView가 있는 경우
-window = QMainWindow()
-list_view = QListView(window)
-window.setCentralWidget(list_view)
+# 포맷 문자열을 사용하여 폰트 스타일 적용
+font_family = "나눔고딕"
+font_size = 18
+font_style = "italic"
+style_sheet = "font-family: {0}; font-size: {1}px; font-style: {2};".format(font_family, font_size, font_style)
 
-# 아이템 데이터 생성
-item_data = ["Item 1", "Item 2", "Item 3"]
+label.setStyleSheet(style_sheet)
 
-# 아이템 모델 생성
-model = QStringListModel(item_data)
-
-# ListView에 모델 설정
-list_view.setModel(model)
-
-# 아이템 선택 이벤트 핸들러
-def item_selected(index):
-    selected_indexes = list_view.selectedIndexes()
-    if selected_indexes:
-        selected_index = selected_indexes[0]
-        selected_text = model.data(selected_index, Qt.DisplayRole)
-        print("Selected Item:", selected_text)
-
-list_view.clicked.connect(item_selected)
-
-window.show()
+label.show()
 app.exec()
