@@ -1,15 +1,23 @@
-from PySide6.QtWidgets import QApplication, QLabel
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QStandardItemModel
+from PySide6.QtWidgets import QListView, QApplication
 
-app = QApplication([])
-label = QLabel("안녕하세요!")
+class HighlightDetectListView(QListView):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.model = QStandardItemModel()
+        self.setModel(self.model)
+        self.selectionModel().selectionChanged.connect(self.handle_selection_changed)
 
-# 포맷 문자열을 사용하여 폰트 스타일 적용
-font_family = "나눔고딕"
-font_size = 18
-font_style = "italic"
-style_sheet = "font-family: {0}; font-size: {1}px; font-style: {2};".format(font_family, font_size, font_style)
+    def handle_selection_changed(self, selected, deselected):
+        for index in selected.indexes():
+            if index.flags() & Qt.ItemIsSelected:
+                print("Selected item:", index.data(Qt.DisplayRole))
 
-label.setStyleSheet(style_sheet)
+if __name__ == '__main__':
+    app = QApplication([])
+    list_view = HighlightDetectListView()
+    # 리스트뷰 설정 및 아이템 추가 등의 코드 작성
+    list_view.show()
+    app.exec()
 
-label.show()
-app.exec()

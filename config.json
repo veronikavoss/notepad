@@ -1,7 +1,7 @@
 {
     "geometry": [
-        678,
-        182,
+        145,
+        130,
         1280,
         1081
     ],
@@ -12,8 +12,8 @@
     "wrap_around": "no",
     "word_wrap_action": true,
     "font_family": {
-        "font": "Arial Narrow",
-        "style": "Italic",
-        "size": "48"
+        "font": "Arial",
+        "style": "Regular",
+        "size": "12"
     }
 }

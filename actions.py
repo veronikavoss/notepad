@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QApplication,QMainWindow,QFrame,QPlainTextEdit,QMenuBar,QMenu,QStatusBar,
     QGridLayout,QDialog,QLabel,QLineEdit,QPushButton,QHBoxLayout,QVBoxLayout,QCheckBox,QRadioButton,
-    QGroupBox,QMessageBox,QDialogButtonBox,QListView,QComboBox,QToolTip,QFileDialog)
+    QGroupBox,QMessageBox,QDialogButtonBox,QListView,QComboBox,QToolTip,QFileDialog,QAbstractItemView)
 
 from PySide6.QtGui import (
     QFont,QTextDocument,QTextCursor,QIntValidator,QKeyEvent,QKeySequence,QTextOption,
