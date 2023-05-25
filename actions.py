@@ -7,7 +7,7 @@ from PySide6.QtGui import (
     QFont,QTextDocument,QTextCursor,QIntValidator,QKeyEvent,QKeySequence,QTextOption,
     QAction,QIcon,QColor,QPalette,QDesktopServices,QFontDatabase,QStandardItemModel,QStandardItem)
 
-from PySide6.QtCore import Qt,QPoint,QDateTime,QTime,QUrl,QStringListModel,QSize,QItemSelectionModel
+from PySide6.QtCore import Qt,QPoint,QDateTime,QTime,QUrl,QStringListModel,QSize,QItemSelectionModel,QEvent
 
 from PySide6.QtPrintSupport import QPageSetupDialog,QPrintDialog,QPrinter
 
@@ -235,19 +235,19 @@ class SetActions:
         
         # widget
         label = QLabel('찾을 내용 ')
-        self.find_line_edit = QLineEdit()
-        self.find_line_edit.setMaxLength(128)
-        self.find_line_edit.setPalette(self.palette)
+        self.find_list_lineedit = QLineEdit()
+        self.find_list_lineedit.setMaxLength(128)
+        self.find_list_lineedit.setPalette(self.palette)
         if selected_text:
             self.keyword_to_find = selected_text
         else:
             self.keyword_to_find = self.config['find_keyword']
-        self.find_line_edit.setText(self.keyword_to_find)
-        self.find_line_edit.selectAll()
-        self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
+        self.find_list_lineedit.setText(self.keyword_to_find)
+        self.find_list_lineedit.selectAll()
+        self.find_list_lineedit.textChanged.connect(self.line_edit_text_changer)
         
         self.find_next_button = QPushButton('다음 찾기(&F)')
-        if self.find_line_edit.text():
+        if self.find_list_lineedit.text():
             self.find_next_button.setEnabled(True)
         else:
             self.find_next_button.setEnabled(False)
@@ -278,7 +278,7 @@ class SetActions:
         
         # add widget
         horizon_lineedit_layout.addWidget(label)
-        horizon_lineedit_layout.addWidget(self.find_line_edit)
+        horizon_lineedit_layout.addWidget(self.find_list_lineedit)
         grid_layout.addLayout(horizon_lineedit_layout,0,0,1,3)
         
         grid_layout.addWidget(self.find_next_button,0,4)
@@ -303,7 +303,7 @@ class SetActions:
         document = self.text_edit.document()
         cursor = self.text_edit.textCursor()
         cursor_position = cursor.position()
-        self.keyword_to_find = self.find_line_edit.text()
+        self.keyword_to_find = self.find_list_lineedit.text()
         
         if self.find_status == 'find':
             self.when_find(document,cursor,cursor_position,self.keyword_to_find)
@@ -423,15 +423,15 @@ class SetActions:
         
         # widget
         find_label = QLabel('찾을 내용(N):')
-        self.find_line_edit = QLineEdit()
-        self.find_line_edit.setPalette(self.palette)
+        self.find_list_lineedit = QLineEdit()
+        self.find_list_lineedit.setPalette(self.palette)
         if selected_text:
             self.keyword_to_find = selected_text
         else:
             self.keyword_to_find = self.config['find_keyword']
-        self.find_line_edit.setText(self.keyword_to_find)
-        self.find_line_edit.selectAll()
-        self.find_line_edit.textChanged.connect(self.line_edit_text_changer)
+        self.find_list_lineedit.setText(self.keyword_to_find)
+        self.find_list_lineedit.selectAll()
+        self.find_list_lineedit.textChanged.connect(self.line_edit_text_changer)
         
         replace_label = QLabel('바꿀 내용(P):')
         self.replace_line_edit = QLineEdit()
@@ -440,7 +440,7 @@ class SetActions:
         self.replace_line_edit.setText(self.keyword_to_replace)
         
         self.find_next_button = QPushButton('다음 찾기(&F)')
-        if self.find_line_edit.text():
+        if self.find_list_lineedit.text():
             self.find_next_button.setEnabled(True)
         else:
             self.find_next_button.setEnabled(False)
@@ -469,7 +469,7 @@ class SetActions:
         
         # add widget
         grid_layout.addWidget(find_label,0,0)
-        grid_layout.addWidget(self.find_line_edit,0,1,1,3)
+        grid_layout.addWidget(self.find_list_lineedit,0,1,1,3)
         grid_layout.addWidget(replace_label,1,0)
         grid_layout.addWidget(self.replace_line_edit,1,1,1,3)
         
@@ -488,7 +488,7 @@ class SetActions:
     def set_replace_button(self):
         replace = None
         cursor = self.text_edit.textCursor()
-        self.keyword_to_find = self.find_line_edit.text()
+        self.keyword_to_find = self.find_list_lineedit.text()
         self.keyword_to_replace = self.replace_line_edit.text()
         if cursor.selectedText():
             if cursor.selectedText() == self.keyword_to_find:
@@ -505,7 +505,7 @@ class SetActions:
     
     def set_replace_all_button(self):
         text = self.text_edit.toPlainText()
-        self.find_keyword = self.find_line_edit.text()
+        self.find_keyword = self.find_list_lineedit.text()
         self.replace_keyword = self.replace_line_edit.text()
         new_text = text.replace(self.find_keyword, self.replace_keyword)
         
@@ -517,8 +517,8 @@ class SetActions:
         cursor.endEditBlock()
     
     def set_find_cancel_button(self,event):
-        self.config['find_keyword'] = self.find_line_edit.text()
-        if not self.find_line_edit.text():
+        self.config['find_keyword'] = self.find_list_lineedit.text()
+        if not self.find_list_lineedit.text():
             self.find_next_action_isrun = False
         
         if self.find_status == 'replace':

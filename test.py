@@ -1,23 +1,69 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QStandardItemModel
-from PySide6.QtWidgets import QListView, QApplication
+from PySide6.QtWidgets import QApplication, QLineEdit, QVBoxLayout, QWidget
+from PySide6.QtCore import QEvent,Qt
 
-class HighlightDetectListView(QListView):
+class MyWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.model = QStandardItemModel()
-        self.setModel(self.model)
-        self.selectionModel().selectionChanged.connect(self.handle_selection_changed)
+        
+        layout = QVBoxLayout(self)
+        
+        self.font_lineedit = QLineEdit(self)
+        self.font_lineedit.setText('1')
+        self.font_style_lineedit = QLineEdit(self)
+        self.font_style_lineedit.setText('2')
+        self.font_size_lineedit = QLineEdit(self)
+        self.font_size_lineedit.setText('3')
+        
+        layout.addWidget(self.font_lineedit)
+        layout.addWidget(self.font_style_lineedit)
+        layout.addWidget(self.font_size_lineedit)
+        
+        self.font_lineedit.installEventFilter(self)
+        self.font_style_lineedit.installEventFilter(self)
+        self.font_size_lineedit.installEventFilter(self)
+        
+    def eventFilter(self, obj, event):
+        if obj == self.font_lineedit and event.type() == QEvent.FocusOut:
+            print("LineEdit lost focus")
+        elif obj == self.font_lineedit and event.type() == QEvent.FocusIn:
+            self.font_lineedit_focus_in = True
+            print("font_lineedit_focus_in",self.font_lineedit_focus_in)
+            self.font_style_lineedit.deselect()
+            self.font_size_lineedit.deselect()
+        
+        if obj == self.font_style_lineedit and event.type() == QEvent.FocusOut:
+            print("font_style_lineedit lost focus")
+        elif obj == self.font_style_lineedit and event.type() == QEvent.FocusIn:
+            self.font_style_lineedit_focus_in = True
+            print("font_style_lineedit_focus_in",self.font_style_lineedit_focus_in)
+            self.font_lineedit.deselect()
+            self.font_size_lineedit.deselect()
+        
+        # lineedit mouse selection
+        if obj == self.font_lineedit and event.type() == QEvent.MouseButtonPress:
+            if event.button() == Qt.LeftButton:
+                if self.font_lineedit_focus_in:
+                    self.font_lineedit.selectAll()
+                    self.font_lineedit_focus_in = False
+                    return True
+        elif obj == self.font_style_lineedit and event.type() == QEvent.MouseButtonPress:
+            if event.button() == Qt.LeftButton:
+                if self.font_style_lineedit_focus_in:
+                    self.font_style_lineedit.selectAll()
+                    self.font_style_lineedit_focus_in = False
+                    return True
+        # elif obj == self.font_size_lineedit and event.type() == QEvent.MouseButtonPress:
+        #     if event.button() == Qt.LeftButton:
+        #         if self.font_size_lineedit_focus_in:
+        #             self.font_size_lineedit.selectAll()
+        #             self.font_size_lineedit_focus_in = False
+        #             return True
+        
+        return super().eventFilter(obj, event)
 
-    def handle_selection_changed(self, selected, deselected):
-        for index in selected.indexes():
-            if index.flags() & Qt.ItemIsSelected:
-                print("Selected item:", index.data(Qt.DisplayRole))
+app = QApplication([])
 
-if __name__ == '__main__':
-    app = QApplication([])
-    list_view = HighlightDetectListView()
-    # 리스트뷰 설정 및 아이템 추가 등의 코드 작성
-    list_view.show()
-    app.exec()
+widget = MyWidget()
+widget.show()
 
+app.exec()
