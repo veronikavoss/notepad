@@ -340,6 +340,7 @@ class MainWindow(QMainWindow,SetActions):
             self.zoom_in,self.zoom_out,self.restore_default_zoom])
         self.view_menu.addAction(self.status_bar_action)
     
+    
     def set_help_action(self):
         self.view_help_action = QAction('도움말 보기(H&)')
         
@@ -391,360 +392,18 @@ class MainWindow(QMainWindow,SetActions):
         self.windows.append(new_window)
         new_window.show()
     
-    def closeEvent(self,event):
-        self.close_event = event
-        self.closed = True
-        self.save_status = 'close'
-        if self.modify:
-            self.run_messagebox_button()
-        
-        self.config['geometry'] = self.x(),self.y()+30,self.width(),self.height()
-        self.config['word_wrap_action'] = self.word_wrap_action.isChecked()
-        
-        with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
-            json.dump(self.config,w,indent=4)
-    
-    def set_font(self):
-        font_window = QDialog(self)
-        font_window.setModal(True)
-        font_window.setWindowTitle('글꼴')
-        font_window.setFixedSize(404,486)
-        self.current_font = self.config['font_family']['font']
-        self.current_font_style = self.config['font_family']['style']
-        self.current_font_size = self.config['font_family']['size']
-        self.font_lineedit_focus_in = None
-        self.font_style_lineedit_focus_in = None
-        self.font_size_lineedit_focus_in = None
-        
-        # widget settings
-        font_label = QLabel('글꼴(F):') # label
-        self.font_lineedit = QLineEdit() # lineedit
-        self.font_list = QListView() # list
-        self.set_font_widget(font_label, self.font_lineedit, self.font_list, 160)
-        self.font_list_model = QStandardItemModel()
-        self.font_list.setModel(self.font_list_model)
-        self.font_list_selectionmodel = self.font_list.selectionModel()
-        self.font_list_selectionmodel.selectionChanged.connect(self.set_font_list_item_selected)
-        
-        font_style_label = QLabel('글꼴 스타일(Y):')
-        self.font_style_lineedit = QLineEdit()
-        self.font_style_list = QListView()
-        self.set_font_widget(font_style_label, self.font_style_lineedit, self.font_style_list, 120)
-        self.font_style_list_model = QStandardItemModel()
-        self.font_style_list.setModel(self.font_style_list_model)
-        self.font_style_list_selectionmodel = self.font_style_list.selectionModel()
-        
-        font_size_label = QLabel('크기(S):')
-        self.font_size_lineedit = QLineEdit()
-        self.font_size_list = QListView()
-        self.set_font_widget(font_size_label, self.font_size_lineedit, self.font_size_list, 60)
-        self.font_size_list_model = QStringListModel()
-        self.font_size_list.setModel(self.font_size_list_model)
-        
-        self.set_font_list()
-        
-        font_preview_groupbox = QGroupBox('보기')
-        font_preview_groupbox.setMaximumHeight(100)
-        self.font_preview_label = QLabel()
-        self.font_preview_label.setMargin(5)
-        self.font_preview_label.setText('AaBbYyZz')
-        font = self.config['font_family']['font']
-        style = self.config['font_family']['style']
-        size = self.config['font_family']['size']
-        self.font_preview_label.setFont(self.set_font_style(font,style,size))
-        self.font_preview_label.setAlignment(Qt.AlignCenter)
-        font_preview_groupbox_layout = QVBoxLayout(font_preview_groupbox)
-        font_preview_groupbox_layout.addWidget(self.font_preview_label)
-        
-        font_script_label = QLabel('스크립트(R):')
-        font_script_combobox = QComboBox()
-        
-        # signals
-        self.font_lineedit.installEventFilter(self)
-        self.font_list.installEventFilter(self)
-        self.font_style_lineedit.installEventFilter(self)
-        self.font_size_lineedit.installEventFilter(self)
-        # self.font_list_lineedit.mousePressEvent = self.set_font_list_lineedit_mouse_event
-        # self.font_style_lineedit.mousePressEvent = self.set_font_style_lineedit_mouse_event
-        # self.font_size_lineedit.mousePressEvent = self.set_font_size_lineedit_mouse_event
-        self.font_list.mouseDoubleClickEvent = lambda event: self.mouseDoubleClickEvent(event)
-        self.font_style_list.mouseDoubleClickEvent = lambda event: self.mouseDoubleClickEvent(event)
-        self.font_size_list.mouseDoubleClickEvent = lambda event: self.mouseDoubleClickEvent(event)
-        
-        self.font_list.clicked.connect(self.set_font_list_mouse_event)
-        self.font_style_list.clicked.connect(self.set_font_style_mouse_event)
-        self.font_style_list_selectionmodel.selectionChanged.connect(self.set_font_style_list_item_selected)
-        
-        show_more_fonts_label = QLabel()
-        show_more_fonts_label.setText('<a href="ms-settings:fonts">다른 글꼴 표시</a>')
-        show_more_fonts_label.setOpenExternalLinks(False)  # 하이퍼링크를 외부 브라우저에서 열지 않도록 설정
-        show_more_fonts_label.linkActivated.connect(self.show_more_fonts)
-        
-        font_button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        font_button_box.accepted.connect(font_window.accept)
-        font_button_box.rejected.connect(font_window.reject)
-        
-        self.font_ok_button = font_button_box.button(QDialogButtonBox.Ok)
-        self.font_ok_button.setText('확인')
-        self.font_ok_button.clicked.connect(self.set_font_ok_button)
-        
-        self.font_cancel_button = font_button_box.button(QDialogButtonBox.Cancel)
-        self.font_cancel_button.setText('취소')
-        
-        # layout setting
-        font_window_layout = QVBoxLayout()
-        font_window.setLayout(font_window_layout)
-        
-        horizon_layout = QHBoxLayout()
-        font_window_layout.addLayout(horizon_layout)
-        
-        font_layout = QVBoxLayout()
-        font_layout.setSpacing(0)
-        font_layout.addWidget(font_label)
-        font_layout.addWidget(self.font_lineedit)
-        font_layout.addWidget(self.font_list)
-        font_style_layout = QVBoxLayout()
-        font_style_layout.setSpacing(0)
-        font_style_layout.addWidget(font_style_label)
-        font_style_layout.addWidget(self.font_style_lineedit)
-        font_style_layout.addWidget(self.font_style_list)
-        font_size_layout = QVBoxLayout()
-        font_size_layout.setSpacing(0)
-        font_size_layout.addWidget(font_size_label)
-        font_size_layout.addWidget(self.font_size_lineedit)
-        font_size_layout.addWidget(self.font_size_list)
-        
-        horizon_layout.addLayout(font_layout)
-        horizon_layout.addLayout(font_style_layout)
-        horizon_layout.addLayout(font_size_layout)
-        horizon_layout.setContentsMargins(4,4,4,0)
-        horizon_layout.setSpacing(14)
-        
-        font_preview_layout = QVBoxLayout()
-        font_preview_layout.addWidget(font_preview_groupbox)
-        font_preview_layout.addWidget(font_script_label)
-        font_preview_layout.addWidget(font_script_combobox)
-        font_preview_layout.setContentsMargins(178,4,4,0)
-        
-        button_layout = QHBoxLayout()
-        # button_layout.setAlignment(Qt.AlignBottom)
-        button_layout.addStretch(2)
-        button_layout.addWidget(font_button_box)
-        
-        font_window_layout.addLayout(font_preview_layout)
-        font_window_layout.addStretch(1)
-        font_window_layout.addWidget(show_more_fonts_label)
-        font_window_layout.addLayout(button_layout)
-        
-        font_window.show()
-    
-    def set_font_widget(self,label,lineedit,list,size):
-        label.setMaximumWidth(size)
-        lineedit.setMaximumWidth(size)
-        list.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        list.setMaximumSize(size,145)
-    
-    def show_more_fonts(self):
-        url = QUrl("ms-settings:fonts")
-        QDesktopServices.openUrl(url)
-    
-    def set_font_list(self):
-        font_families = QFontDatabase.families()
-        
-        black_list = ['Fixedsys','Modern','MS Serif','MS Sans Serif','Roman','Script','Small Fonts','System','Terminal']
-        self.all_styles = []
-        temp_all_styles = []
-        
-        for font in font_families:
-            if not QFontDatabase.pointSizes(font):
-                black_list.append(font)
-            temp_all_styles.append(QFontDatabase.styles(font))
-            item = QStandardItem(font)
-            if font not in black_list:
-                item.setFont(QFont(font, 12))  # Apply the font
-                item.setSizeHint(QSize(100,20))
-                self.font_list_model.appendRow(item)
-        
-        for styles in set(map(tuple,temp_all_styles)):
-            for style in styles:
-                self.all_styles.append(style)
-        print(set(self.all_styles))
-        
-        current_font = self.config['font_family']['font']
-        font_select_item = self.font_list_model.findItems(current_font, Qt.MatchExactly) # MatchFixedString
-        for item in font_select_item:
-            selected_font_list_item_text = item.text()
-            index = item.index()
-            self.font_list_selectionmodel.select(index,QItemSelectionModel.Select)
-        
-        self.font_lineedit.setText(selected_font_list_item_text)
-        self.font_lineedit.selectAll()
-    
-    def set_font_list_item_selected(self, selected, deselected):
-        self.font_style_list_model.clear()
-        selected_font_list_item = selected
-        selected_font_list_item_index = selected_font_list_item.indexes()[0]
-        selected_font_list_item_text = selected_font_list_item_index.data(Qt.DisplayRole)
-        # print(selected_item,selected_index)
-        
-        # append style list
-        font_style_list = [style for style in QFontDatabase.styles(selected_font_list_item_text)]
-        # print(font_style_list)
-        for style_name in font_style_list:
-            item = QStandardItem(style_name)
-            font = selected_font_list_item_text
-            style = style_name
-            item.setFont(self.set_font_style(font,style,12))  # Apply the font style
-            item.setSizeHint(QSize(100,20))
-            self.font_style_list_model.appendRow(item)
-        
-        # append size list
-        font_size_list = [size for size in QFontDatabase.pointSizes(selected_font_list_item_text)]
-        # print(font_size_list)
-        self.font_size_list_model.setStringList((str(size) for size in font_size_list))
-        
-        # select style
-        font_style_selected_item = self.font_style_list.selectedIndexes()
-        font_match_style_item = self.font_style_list_model.findItems(self.current_font_style, Qt.MatchExactly) # MatchFixedString
-        
-        if not font_match_style_item:
-            print('blank style',font_match_style_item)
-            if font_match_style_item != self.current_font_style:
-                self.font_style_list.setCurrentIndex(self.font_style_list_model.index(0,0))
-                selected_style_list_item_text = self.font_style_list_model.itemFromIndex(self.font_style_list_model.index(0,0)).text()
-                self.current_font_style = selected_style_list_item_text
-        else:
-            print(font_match_style_item[0].text())
-            for item in font_match_style_item:
-                selected_style_list_item_text = item.text()
-                index = item.index()
-                self.font_style_list_selectionmodel.select(index,QItemSelectionModel.Select)
-                selected_style_item_text = self.font_style_list_model.itemFromIndex(index).text()
-        
-        # select size
-        # 리스트에서 문자열 찾아 인덱스 가져오기
-        indexes = self.font_size_list_model.match(
-            self.font_size_list_model.index(0), Qt.DisplayRole, self.current_font_size, -1, Qt.MatchExactly)
-        
-        if indexes:
-            # 찾은 인덱스로 선택하기
-            index = indexes[0]
-            self.font_size_list.setCurrentIndex(index)
-            selected_size_list_item_text = index.data()
-        else:
-            # 인덱스 0을 선택하고 선택된 값 가져오기
-            self.font_size_list.setCurrentIndex(self.font_size_list_model.index(0))
-            selected_size_list_item_index = self.font_size_list.selectedIndexes()[0]
-            selected_size_list_item_text = self.font_size_list_model.data(selected_size_list_item_index,Qt.DisplayRole)
-        
-        self.font_lineedit.setText(selected_font_list_item_text)
-        self.font_lineedit.selectAll()
-        self.font_style_lineedit.setText(selected_style_list_item_text)
-        self.font_size_lineedit.setText(selected_size_list_item_text)
-    
-    def set_font_style_list_item_selected(self, selected, deselected):
-        self.font_lineedit.deselect()
-        if not selected.indexes(): # 선택된 항목이 없는 경우
-            if deselected.indexes():
-                self.font_style_list_selectionmodel.select(deselected.indexes()[0],QItemSelectionModel.Select)
-        else:
-            selected_font_style_list_item_index = selected.indexes()[0]
-            selected_font_style_list_item_text = selected_font_style_list_item_index.data(Qt.DisplayRole)
-            self.current_font_style = selected_font_style_list_item_text
-            
-            font = self.current_font
-            style = self.current_font_style
-            size = self.current_font_size
-            self.font_style_lineedit.setText(style)
-            self.font_style_lineedit.selectAll()
-            self.font_preview_label.setFont(self.set_font_style(font,style,size))
-    
-    def set_font_style(self,font,style,size):
-        font = QFont(font,int(size))
-        if style == 'Normal' or style == 'Regular':
-            font.setStyle(QFont.StyleNormal)
-        elif style == 'Bold':
-            font.setBold(True)
-        elif style == 'Bold Italic':
-            font.setBold(True)
-            font.setItalic(True)
-        elif style == 'Bold SemiCondensed':
-            font.setBold(True)
-            font.setLetterSpacing(QFont.PercentageSpacing, 90)
-        elif style == 'SemiBold':
-            font.setWeight(QFont.DemiBold)
-        elif style == 'SemiBold Condensed':
-            font.setWeight(QFont.DemiBold)
-            font.setLetterSpacing(QFont.PercentageSpacing, 80)
-        elif style == 'SemiBold SemiCondensed':
-            font.setWeight(QFont.DemiBold)
-            font.setLetterSpacing(QFont.PercentageSpacing, 90)
-        elif style == 'Italic':
-            font.setItalic(True)
-        elif style == 'Narrow' or style == 'Condensed':
-            font.setLetterSpacing(QFont.PercentageSpacing, 80)
-        elif style == 'Narrow Bold' or style == 'Bold Condensed':
-            font.setBold(True)
-            font.setLetterSpacing(QFont.PercentageSpacing, 80)
-        elif style == 'Narrow Bold Italic' or style == 'Condensed Bold Italic':
-            font.setBold(True)
-            font.setItalic(True)
-            font.setLetterSpacing(QFont.PercentageSpacing, 80)
-        elif style == 'Narrow Italic' or style == 'Condensed Italic':
-            font.setItalic(True)
-            font.setLetterSpacing(QFont.PercentageSpacing, 80)
-        elif style == 'SemiCondensed':
-            font.setLetterSpacing(QFont.PercentageSpacing, 90)
-        elif style == 'Light':
-            font.setWeight(QFont.ExtraLight)
-        elif style == 'Light Condensed':
-            font.setWeight(QFont.ExtraLight)
-            font.setLetterSpacing(QFont.PercentageSpacing, 80)
-        elif style == 'Light SemiCondensed':
-            font.setWeight(QFont.ExtraLight)
-            font.setLetterSpacing(QFont.PercentageSpacing, 90)
-        elif style == 'SemiLight':
-            # font.setWeight(QFont.Light + ((QFont.Normal - QFont.Light) * 2) // 3)  # SemiLight 스타일로 폰트 굵기 설정
-            font.setWeight(QFont.Light)
-        elif style == 'SemiLight SemiCondensed':
-            font.setWeight(QFont.Light)
-            font.setLetterSpacing(QFont.PercentageSpacing, 90)
-        elif style == 'Black':
-            font.setWeight(QFont.Black)
-        else:
-            font.setStyle(QFont.StyleNormal)
-        
-        return font
-    
-    def set_font_ok_button(self):
-        print(0)
-    
     def eventFilter(self, obj, event):
-        # font_lineedit
-        if obj == self.font_lineedit and event.type() == QEvent.FocusOut:
-            print("LineEdit lost focus")
-        elif obj == self.font_lineedit and event.type() == QEvent.FocusIn:
+        # set_focus_lineedit
+        if obj == self.font_lineedit and event.type() == QEvent.FocusIn:
             self.font_lineedit_focus_in = True
-            print("font_lineedit_focus_in",self.font_lineedit_focus_in)
             self.font_style_lineedit.deselect()
             self.font_size_lineedit.deselect()
-        
-        # font_style_lineedit
-        if obj == self.font_style_lineedit and event.type() == QEvent.FocusOut:
-            print("font_style_lineedit lost focus")
         elif obj == self.font_style_lineedit and event.type() == QEvent.FocusIn:
             self.font_style_lineedit_focus_in = True
-            print("font_style_lineedit_focus_in",self.font_style_lineedit_focus_in)
             self.font_lineedit.deselect()
             self.font_size_lineedit.deselect()
-        
-        # font_style_lineedit
-        if obj == self.font_size_lineedit and event.type() == QEvent.FocusOut:
-            print("font_style_lineedit lost focus")
         elif obj == self.font_size_lineedit and event.type() == QEvent.FocusIn:
             self.font_size_lineedit_focus_in = True
-            print("font_style_lineedit_focus_in",self.font_size_lineedit_focus_in)
             self.font_lineedit.deselect()
             self.font_style_lineedit.deselect()
         
@@ -770,19 +429,18 @@ class MainWindow(QMainWindow,SetActions):
         
         return super().eventFilter(obj, event)
     
-    def set_font_list_mouse_event(self,event):
-        self.font_lineedit.selectAll()
-        self.font_style_lineedit.deselect()
-        self.font_size_lineedit.deselect()
-    
-    def set_font_style_mouse_event(self,event):
-        self.font_style_lineedit.selectAll()
-        self.font_lineedit.deselect()
-        self.font_size_lineedit.deselect()
-    
-    def set_font_size_mouse_event(self,event):
-        self.font_lineedit.deselect()
-        self.font_style_lineedit.deselect()
+    def closeEvent(self,event):
+        self.close_event = event
+        self.closed = True
+        self.save_status = 'close'
+        if self.modify:
+            self.run_messagebox_button()
+        
+        self.config['geometry'] = self.x(),self.y()+30,self.width(),self.height()
+        self.config['word_wrap_action'] = self.word_wrap_action.isChecked()
+        
+        with open(str(os.path.join(CURRENT_PATH,'config.json')),'w') as w:
+            json.dump(self.config,w,indent=4)
 
 app = QApplication(sys.argv)
 window = MainWindow()
